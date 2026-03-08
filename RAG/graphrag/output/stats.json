@@ -1,0 +1,20 @@
+{
+    "total_runtime": 0,
+    "num_documents": 1,
+    "update_documents": 0,
+    "input_load_time": 0,
+    "workflows": {
+        "load_input_documents": {
+            "overall": 0.051119327545166016,
+            "peak_memory_bytes": 2250596,
+            "memory_delta_bytes": 1868796,
+            "tracemalloc_overhead_bytes": 802256
+        },
+        "create_base_text_units": {
+            "overall": 0.7789304256439209,
+            "peak_memory_bytes": 43016869,
+            "memory_delta_bytes": 25366687,
+            "tracemalloc_overhead_bytes": 30019696
+        }
+    }
+}

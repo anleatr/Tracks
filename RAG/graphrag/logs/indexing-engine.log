@@ -1,0 +1,3347 @@
+2026-02-25 15:40:34.0611 - INFO - graphrag.index.validate_config - LLM Config Params Validated
+2026-02-25 15:40:37.0466 - INFO - graphrag.index.validate_config - Embedding LLM Config Params Validated
+2026-02-25 15:40:37.0466 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-02-25 15:40:37.0467 - INFO - graphrag.cli.index - Using default configuration: {
+    "root_dir": "/home/wtz/play/graphrag",
+    "models": {
+        "default_chat_model": {
+            "api_key": "==== REDACTED ====",
+            "auth_type": "api_key",
+            "type": "chat",
+            "model_provider": "openai",
+            "model": "gpt-3.5-turbo-0125",
+            "encoding_model": "",
+            "api_base": "https://api.gptai.cc/v1",
+            "api_version": null,
+            "deployment_name": null,
+            "proxy": null,
+            "audience": null,
+            "model_supports_json": true,
+            "request_timeout": 180.0,
+            "tokens_per_minute": null,
+            "requests_per_minute": null,
+            "rate_limit_strategy": "static",
+            "retry_strategy": "exponential_backoff",
+            "max_retries": 10,
+            "max_retry_wait": 10.0,
+            "concurrent_requests": 25,
+            "async_mode": "threaded",
+            "responses": null,
+            "max_tokens": null,
+            "temperature": 0,
+            "max_completion_tokens": null,
+            "reasoning_effort": null,
+            "top_p": 1,
+            "n": 1,
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0
+        },
+        "default_embedding_model": {
+            "api_key": "==== REDACTED ====",
+            "auth_type": "api_key",
+            "type": "embedding",
+            "model_provider": "openai",
+            "model": "text-embedding-3-small",
+            "encoding_model": "",
+            "api_base": "https://api.gptai.cc/v1",
+            "api_version": null,
+            "deployment_name": null,
+            "proxy": null,
+            "audience": null,
+            "model_supports_json": null,
+            "request_timeout": 180.0,
+            "tokens_per_minute": null,
+            "requests_per_minute": null,
+            "rate_limit_strategy": "static",
+            "retry_strategy": "exponential_backoff",
+            "max_retries": 10,
+            "max_retry_wait": 10.0,
+            "concurrent_requests": 25,
+            "async_mode": "threaded",
+            "responses": null,
+            "max_tokens": null,
+            "temperature": 0,
+            "max_completion_tokens": null,
+            "reasoning_effort": null,
+            "top_p": 1,
+            "n": 1,
+            "frequency_penalty": 0.0,
+            "presence_penalty": 0.0
+        }
+    },
+    "input": {
+        "storage": {
+            "type": "file",
+            "base_dir": "/home/wtz/play/graphrag/input",
+            "storage_account_blob_url": null,
+            "cosmosdb_account_url": null
+        },
+        "file_type": "text",
+        "encoding": "utf-8",
+        "file_pattern": ".*\\.txt$",
+        "file_filter": null,
+        "text_column": "text",
+        "title_column": null,
+        "metadata": null
+    },
+    "chunks": {
+        "size": 1200,
+        "overlap": 100,
+        "group_by_columns": [
+            "id"
+        ],
+        "strategy": "tokens",
+        "encoding_model": "cl100k_base",
+        "prepend_metadata": false,
+        "chunk_size_includes_metadata": false
+    },
+    "output": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "storage_account_blob_url": null,
+        "cosmosdb_account_url": null
+    },
+    "outputs": null,
+    "update_index_output": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "storage_account_blob_url": null,
+        "cosmosdb_account_url": null
+    },
+    "cache": {
+        "type": "file",
+        "base_dir": "cache",
+        "storage_account_blob_url": null,
+        "cosmosdb_account_url": null
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "storage_account_blob_url": null
+    },
+    "vector_store": {
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+            "url": null,
+            "audience": null,
+            "container_name": "==== REDACTED ====",
+            "database_name": null,
+            "overwrite": true,
+            "embeddings_schema": {}
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "model_id": "default_embedding_model",
+        "vector_store_id": "default_vector_store",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity.description",
+            "community.full_content",
+            "text_unit.text"
+        ],
+        "strategy": null
+    },
+    "extract_graph": {
+        "model_id": "default_chat_model",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1,
+        "strategy": null
+    },
+    "summarize_descriptions": {
+        "model_id": "default_chat_model",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000,
+        "strategy": null
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "model_id": "default_chat_model",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1,
+        "strategy": null
+    },
+    "community_reports": {
+        "model_id": "default_chat_model",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000,
+        "strategy": null
+    },
+    "embed_graph": {
+        "enabled": false,
+        "dimensions": 1536,
+        "num_walks": 10,
+        "walk_length": 40,
+        "window_size": 2,
+        "iterations": 3,
+        "random_seed": 597832,
+        "use_lcc": true
+    },
+    "umap": {
+        "enabled": false
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "chat_model_id": "default_chat_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "chat_model_id": "default_chat_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "chat_model_id": "default_chat_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "chat_model_id": "default_chat_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-02-25 15:40:37.0468 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-02-25 15:40:37.0468 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-02-25 15:40:37.0468 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/input
+2026-02-25 15:40:37.0468 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/output
+2026-02-25 15:40:37.0468 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag
+2026-02-25 15:40:37.0468 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/cache
+2026-02-25 15:40:37.0470 - INFO - graphrag.index.run.run_pipeline - Running standard indexing.
+2026-02-25 15:40:37.0471 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at 
+2026-02-25 15:40:37.0472 - INFO - graphrag.index.run.run_pipeline - Executing pipeline...
+2026-02-25 15:40:37.0472 - INFO - graphrag.index.input.factory - loading input from root_dir=/home/wtz/play/graphrag/input
+2026-02-25 15:40:37.0472 - INFO - graphrag.index.input.factory - Loading Input InputFileType.text
+2026-02-25 15:40:37.0473 - INFO - graphrag.storage.file_pipeline_storage - search /home/wtz/play/graphrag/input for files matching .*\.txt$
+2026-02-25 15:40:37.0477 - INFO - graphrag.index.input.util - Found 1 InputFileType.text files, loading 1
+2026-02-25 15:40:37.0478 - INFO - graphrag.index.input.util - Total number of unfiltered text rows: 1
+2026-02-25 15:40:37.0478 - INFO - graphrag.index.workflows.load_input_documents - Final # of rows loaded: 1
+2026-02-25 15:40:37.0487 - INFO - graphrag.api.index - Workflow load_input_documents completed successfully
+2026-02-25 15:40:37.0496 - INFO - graphrag.index.workflows.create_base_text_units - Workflow started: create_base_text_units
+2026-02-25 15:40:37.0496 - INFO - graphrag.utils.storage - reading table from storage: documents.parquet
+2026-02-25 15:40:37.0507 - INFO - graphrag.index.workflows.create_base_text_units - Starting chunking process for 1 documents
+2026-02-25 15:40:37.0605 - INFO - graphrag.index.workflows.create_base_text_units - chunker progress:  1/1
+2026-02-25 15:40:37.0611 - INFO - graphrag.index.workflows.create_base_text_units - Workflow completed: create_base_text_units
+2026-02-25 15:40:37.0612 - INFO - graphrag.api.index - Workflow create_base_text_units completed successfully
+2026-02-25 15:40:37.0617 - INFO - graphrag.index.workflows.create_final_documents - Workflow started: create_final_documents
+2026-02-25 15:40:37.0617 - INFO - graphrag.utils.storage - reading table from storage: documents.parquet
+2026-02-25 15:40:37.0619 - INFO - graphrag.utils.storage - reading table from storage: text_units.parquet
+2026-02-25 15:40:37.0629 - INFO - graphrag.index.workflows.create_final_documents - Workflow completed: create_final_documents
+2026-02-25 15:40:37.0629 - INFO - graphrag.api.index - Workflow create_final_documents completed successfully
+2026-02-25 15:40:37.0633 - INFO - graphrag.index.workflows.extract_graph - Workflow started: extract_graph
+2026-02-25 15:40:37.0633 - INFO - graphrag.utils.storage - reading table from storage: text_units.parquet
+2026-02-25 15:40:37.0638 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/cache/extract_graph
+2026-02-25 15:40:47.0533 - INFO - graphrag.logger.progress - extract graph progress: 1/42
+2026-02-25 15:40:48.0729 - INFO - graphrag.logger.progress - extract graph progress: 2/42
+2026-02-25 15:40:49.0551 - INFO - graphrag.logger.progress - extract graph progress: 3/42
+2026-02-25 15:40:50.0166 - INFO - graphrag.logger.progress - extract graph progress: 4/42
+2026-02-25 15:40:50.0472 - INFO - graphrag.logger.progress - extract graph progress: 5/42
+2026-02-25 15:40:51.0692 - INFO - graphrag.logger.progress - extract graph progress: 6/42
+2026-02-25 15:40:52.0105 - INFO - graphrag.logger.progress - extract graph progress: 7/42
+2026-02-25 15:40:52.0142 - INFO - graphrag.logger.progress - extract graph progress: 8/42
+2026-02-25 15:40:52.0317 - INFO - graphrag.logger.progress - extract graph progress: 9/42
+2026-02-25 15:40:53.0652 - INFO - graphrag.logger.progress - extract graph progress: 10/42
+2026-02-25 15:40:53.0654 - INFO - graphrag.logger.progress - extract graph progress: 11/42
+2026-02-25 15:40:53.0663 - INFO - graphrag.logger.progress - extract graph progress: 12/42
+2026-02-25 15:40:54.0054 - INFO - graphrag.logger.progress - extract graph progress: 13/42
+2026-02-25 15:40:54.0803 - INFO - graphrag.logger.progress - extract graph progress: 14/42
+2026-02-25 15:40:54.0817 - INFO - graphrag.logger.progress - extract graph progress: 15/42
+2026-02-25 15:40:55.0516 - INFO - graphrag.logger.progress - extract graph progress: 16/42
+2026-02-25 15:40:55.0902 - INFO - graphrag.logger.progress - extract graph progress: 17/42
+2026-02-25 15:40:55.0924 - INFO - graphrag.logger.progress - extract graph progress: 18/42
+2026-02-25 15:40:57.0237 - INFO - graphrag.logger.progress - extract graph progress: 19/42
+2026-02-25 15:40:57.0239 - INFO - graphrag.logger.progress - extract graph progress: 20/42
+2026-02-25 15:40:58.0279 - INFO - graphrag.logger.progress - extract graph progress: 21/42
+2026-02-25 15:40:58.0457 - INFO - graphrag.logger.progress - extract graph progress: 22/42
+2026-02-25 15:40:58.0666 - INFO - graphrag.logger.progress - extract graph progress: 23/42
+2026-02-25 15:41:00.0449 - INFO - graphrag.logger.progress - extract graph progress: 24/42
+2026-02-25 15:41:00.0500 - INFO - graphrag.logger.progress - extract graph progress: 25/42
+2026-02-25 15:41:00.0794 - INFO - graphrag.logger.progress - extract graph progress: 26/42
+2026-02-25 15:41:01.0422 - INFO - graphrag.logger.progress - extract graph progress: 27/42
+2026-02-25 15:41:02.0867 - INFO - graphrag.logger.progress - extract graph progress: 28/42
+2026-02-25 15:41:03.0928 - INFO - graphrag.logger.progress - extract graph progress: 29/42
+2026-02-25 15:41:04.0196 - INFO - graphrag.logger.progress - extract graph progress: 30/42
+2026-02-25 15:41:04.0276 - INFO - graphrag.logger.progress - extract graph progress: 31/42
+2026-02-25 15:41:05.0010 - INFO - graphrag.logger.progress - extract graph progress: 32/42
+2026-02-25 15:41:05.0011 - INFO - graphrag.logger.progress - extract graph progress: 33/42
+2026-02-25 15:41:05.0631 - INFO - graphrag.logger.progress - extract graph progress: 34/42
+2026-02-25 15:41:05.0737 - INFO - graphrag.logger.progress - extract graph progress: 35/42
+2026-02-25 15:41:07.0167 - INFO - graphrag.logger.progress - extract graph progress: 36/42
+2026-02-25 15:41:07.0465 - INFO - graphrag.logger.progress - extract graph progress: 37/42
+2026-02-25 15:41:07.0884 - INFO - graphrag.logger.progress - extract graph progress: 38/42
+2026-02-25 15:41:08.0702 - INFO - graphrag.logger.progress - extract graph progress: 39/42
+2026-02-25 15:41:09.0102 - INFO - graphrag.logger.progress - extract graph progress: 40/42
+2026-02-25 15:41:09.0718 - INFO - graphrag.logger.progress - extract graph progress: 41/42
+2026-02-25 15:41:10.0644 - INFO - graphrag.logger.progress - extract graph progress: 42/42
+2026-02-25 15:41:10.0691 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/cache/summarize_descriptions
+2026-02-25 15:41:10.0692 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 1/600
+2026-02-25 15:41:10.0692 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 2/600
+2026-02-25 15:41:10.0692 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 3/600
+2026-02-25 15:41:10.0693 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 4/600
+2026-02-25 15:41:10.0693 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 5/600
+2026-02-25 15:41:10.0693 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 6/600
+2026-02-25 15:41:10.0694 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 7/600
+2026-02-25 15:41:10.0695 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 8/600
+2026-02-25 15:41:10.0695 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 9/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 10/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 11/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 12/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 13/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 14/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 15/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 16/600
+2026-02-25 15:41:10.0696 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 17/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 18/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 19/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 20/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 21/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 22/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 23/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 24/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 25/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 26/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 27/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 28/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 29/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 30/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 31/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 32/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 33/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 34/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 35/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 36/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 37/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 38/600
+2026-02-25 15:41:10.0697 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 39/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 40/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 41/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 42/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 43/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 44/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 45/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 46/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 47/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 48/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 49/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 50/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 51/600
+2026-02-25 15:41:10.0698 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 52/600
+2026-02-25 15:41:13.0714 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 53/600
+2026-02-25 15:41:13.0715 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 54/600
+2026-02-25 15:41:13.0817 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 55/600
+2026-02-25 15:41:13.0916 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 56/600
+2026-02-25 15:41:13.0916 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 57/600
+2026-02-25 15:41:13.0917 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 58/600
+2026-02-25 15:41:13.0917 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 59/600
+2026-02-25 15:41:13.0918 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 60/600
+2026-02-25 15:41:13.0919 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 61/600
+2026-02-25 15:41:13.0921 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 62/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 63/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 64/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 65/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 66/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 67/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 68/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 69/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 70/600
+2026-02-25 15:41:13.0922 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 71/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 72/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 73/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 74/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 75/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 76/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 77/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 78/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 79/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 80/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 81/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 82/600
+2026-02-25 15:41:13.0923 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 83/600
+2026-02-25 15:41:13.0924 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 84/600
+2026-02-25 15:41:14.0130 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 85/600
+2026-02-25 15:41:14.0131 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 86/600
+2026-02-25 15:41:14.0131 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 87/600
+2026-02-25 15:41:14.0131 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 88/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 89/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 90/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 91/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 92/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 93/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 94/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 95/600
+2026-02-25 15:41:14.0132 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 96/600
+2026-02-25 15:41:14.0184 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 97/600
+2026-02-25 15:41:14.0185 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 98/600
+2026-02-25 15:41:14.0185 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 99/600
+2026-02-25 15:41:14.0185 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 100/600
+2026-02-25 15:41:14.0185 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 101/600
+2026-02-25 15:41:14.0332 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 102/600
+2026-02-25 15:41:14.0332 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 103/600
+2026-02-25 15:41:14.0333 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 104/600
+2026-02-25 15:41:14.0333 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 105/600
+2026-02-25 15:41:14.0333 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 106/600
+2026-02-25 15:41:14.0333 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 107/600
+2026-02-25 15:41:14.0334 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 108/600
+2026-02-25 15:41:14.0334 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 109/600
+2026-02-25 15:41:14.0334 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 110/600
+2026-02-25 15:41:14.0334 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 111/600
+2026-02-25 15:41:14.0334 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 112/600
+2026-02-25 15:41:14.0335 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 113/600
+2026-02-25 15:41:14.0335 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 114/600
+2026-02-25 15:41:14.0635 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 115/600
+2026-02-25 15:41:14.0636 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 116/600
+2026-02-25 15:41:14.0636 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 117/600
+2026-02-25 15:41:14.0636 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 118/600
+2026-02-25 15:41:14.0636 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 119/600
+2026-02-25 15:41:14.0637 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 120/600
+2026-02-25 15:41:14.0637 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 121/600
+2026-02-25 15:41:14.0637 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 122/600
+2026-02-25 15:41:14.0637 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 123/600
+2026-02-25 15:41:14.0637 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 124/600
+2026-02-25 15:41:14.0637 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 125/600
+2026-02-25 15:41:14.0638 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 126/600
+2026-02-25 15:41:14.0639 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 127/600
+2026-02-25 15:41:14.0641 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 128/600
+2026-02-25 15:41:14.0641 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 129/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 130/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 131/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 132/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 133/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 134/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 135/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 136/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 137/600
+2026-02-25 15:41:14.0642 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 138/600
+2026-02-25 15:41:14.0643 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 139/600
+2026-02-25 15:41:14.0643 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 140/600
+2026-02-25 15:41:14.0643 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 141/600
+2026-02-25 15:41:14.0643 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 142/600
+2026-02-25 15:41:14.0643 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 143/600
+2026-02-25 15:41:14.0778 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 144/600
+2026-02-25 15:41:14.0779 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 145/600
+2026-02-25 15:41:14.0779 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 146/600
+2026-02-25 15:41:14.0781 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 147/600
+2026-02-25 15:41:14.0784 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 148/600
+2026-02-25 15:41:14.0787 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 149/600
+2026-02-25 15:41:14.0789 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 150/600
+2026-02-25 15:41:14.0791 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 151/600
+2026-02-25 15:41:14.0792 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 152/600
+2026-02-25 15:41:14.0793 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 153/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 154/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 155/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 156/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 157/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 158/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 159/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 160/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 161/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 162/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 163/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 164/600
+2026-02-25 15:41:14.0794 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 165/600
+2026-02-25 15:41:14.0795 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 166/600
+2026-02-25 15:41:14.0795 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 167/600
+2026-02-25 15:41:14.0795 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 168/600
+2026-02-25 15:41:14.0795 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 169/600
+2026-02-25 15:41:14.0795 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 170/600
+2026-02-25 15:41:14.0841 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 171/600
+2026-02-25 15:41:14.0841 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 172/600
+2026-02-25 15:41:14.0841 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 173/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 174/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 175/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 176/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 177/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 178/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 179/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 180/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 181/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 182/600
+2026-02-25 15:41:14.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 183/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 184/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 185/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 186/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 187/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 188/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 189/600
+2026-02-25 15:41:14.0843 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 190/600
+2026-02-25 15:41:14.0859 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 191/600
+2026-02-25 15:41:14.0943 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 192/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 193/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 194/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 195/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 196/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 197/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 198/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 199/600
+2026-02-25 15:41:14.0944 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 200/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 201/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 202/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 203/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 204/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 205/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 206/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 207/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 208/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 209/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 210/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 211/600
+2026-02-25 15:41:14.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 212/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 213/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 214/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 215/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 216/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 217/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 218/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 219/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 220/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 221/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 222/600
+2026-02-25 15:41:14.0946 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 223/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 224/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 225/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 226/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 227/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 228/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 229/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 230/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 231/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 232/600
+2026-02-25 15:41:14.0947 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 233/600
+2026-02-25 15:41:15.0252 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 234/600
+2026-02-25 15:41:15.0252 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 235/600
+2026-02-25 15:41:15.0252 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 236/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 237/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 238/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 239/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 240/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 241/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 242/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 243/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 244/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 245/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 246/600
+2026-02-25 15:41:15.0253 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 247/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 248/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 249/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 250/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 251/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 252/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 253/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 254/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 255/600
+2026-02-25 15:41:15.0254 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 256/600
+2026-02-25 15:41:15.0565 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 257/600
+2026-02-25 15:41:15.0765 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 258/600
+2026-02-25 15:41:15.0870 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 259/600
+2026-02-25 15:41:16.0177 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 260/600
+2026-02-25 15:41:17.0104 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 261/600
+2026-02-25 15:41:17.0104 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 262/600
+2026-02-25 15:41:17.0104 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 263/600
+2026-02-25 15:41:17.0195 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 264/600
+2026-02-25 15:41:17.0196 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 265/600
+2026-02-25 15:41:17.0196 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 266/600
+2026-02-25 15:41:17.0295 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 267/600
+2026-02-25 15:41:17.0396 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 268/600
+2026-02-25 15:41:17.0610 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 269/600
+2026-02-25 15:41:17.0610 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 270/600
+2026-02-25 15:41:17.0980 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 271/600
+2026-02-25 15:41:18.0009 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 272/600
+2026-02-25 15:41:18.0228 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 273/600
+2026-02-25 15:41:18.0228 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 274/600
+2026-02-25 15:41:18.0372 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 275/600
+2026-02-25 15:41:18.0528 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 276/600
+2026-02-25 15:41:18.0737 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 277/600
+2026-02-25 15:41:18.0842 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 278/600
+2026-02-25 15:41:19.0035 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 279/600
+2026-02-25 15:41:19.0148 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 280/600
+2026-02-25 15:41:19.0153 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 281/600
+2026-02-25 15:41:19.0153 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 282/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 283/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 284/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 285/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 286/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 287/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 288/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 289/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 290/600
+2026-02-25 15:41:19.0154 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 291/600
+2026-02-25 15:41:19.0158 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 292/600
+2026-02-25 15:41:19.0158 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 293/600
+2026-02-25 15:41:19.0158 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 294/600
+2026-02-25 15:41:19.0158 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 295/600
+2026-02-25 15:41:19.0158 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 296/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 297/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 298/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 299/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 300/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 301/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 302/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 303/600
+2026-02-25 15:41:19.0159 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 304/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 305/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 306/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 307/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 308/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 309/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 310/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 311/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 312/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 313/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 314/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 315/600
+2026-02-25 15:41:19.0160 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 316/600
+2026-02-25 15:41:19.0161 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 317/600
+2026-02-25 15:41:19.0161 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 318/600
+2026-02-25 15:41:19.0161 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 319/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 320/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 321/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 322/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 323/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 324/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 325/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 326/600
+2026-02-25 15:41:19.0162 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 327/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 328/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 329/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 330/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 331/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 332/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 333/600
+2026-02-25 15:41:19.0163 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 334/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 335/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 336/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 337/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 338/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 339/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 340/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 341/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 342/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 343/600
+2026-02-25 15:41:19.0164 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 344/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 345/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 346/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 347/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 348/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 349/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 350/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 351/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 352/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 353/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 354/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 355/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 356/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 357/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 358/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 359/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 360/600
+2026-02-25 15:41:19.0165 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 361/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 362/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 363/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 364/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 365/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 366/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 367/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 368/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 369/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 370/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 371/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 372/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 373/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 374/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 375/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 376/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 377/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 378/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 379/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 380/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 381/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 382/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 383/600
+2026-02-25 15:41:19.0166 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 384/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 385/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 386/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 387/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 388/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 389/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 390/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 391/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 392/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 393/600
+2026-02-25 15:41:19.0167 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 394/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 395/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 396/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 397/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 398/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 399/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 400/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 401/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 402/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 403/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 404/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 405/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 406/600
+2026-02-25 15:41:19.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 407/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 408/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 409/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 410/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 411/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 412/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 413/600
+2026-02-25 15:41:19.0169 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 414/600
+2026-02-25 15:41:19.0170 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 415/600
+2026-02-25 15:41:19.0170 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 416/600
+2026-02-25 15:41:19.0171 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 417/600
+2026-02-25 15:41:19.0172 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 418/600
+2026-02-25 15:41:19.0172 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 419/600
+2026-02-25 15:41:19.0172 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 420/600
+2026-02-25 15:41:19.0172 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 421/600
+2026-02-25 15:41:19.0172 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 422/600
+2026-02-25 15:41:19.0172 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 423/600
+2026-02-25 15:41:21.0603 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 424/600
+2026-02-25 15:41:21.0705 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 425/600
+2026-02-25 15:41:21.0706 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 426/600
+2026-02-25 15:41:21.0706 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 427/600
+2026-02-25 15:41:21.0706 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 428/600
+2026-02-25 15:41:21.0706 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 429/600
+2026-02-25 15:41:21.0706 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 430/600
+2026-02-25 15:41:21.0707 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 431/600
+2026-02-25 15:41:21.0730 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 432/600
+2026-02-25 15:41:21.0730 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 433/600
+2026-02-25 15:41:21.0730 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 434/600
+2026-02-25 15:41:21.0730 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 435/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 436/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 437/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 438/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 439/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 440/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 441/600
+2026-02-25 15:41:21.0731 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 442/600
+2026-02-25 15:41:21.0809 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 443/600
+2026-02-25 15:41:21.0810 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 444/600
+2026-02-25 15:41:21.0810 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 445/600
+2026-02-25 15:41:21.0810 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 446/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 447/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 448/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 449/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 450/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 451/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 452/600
+2026-02-25 15:41:22.0013 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 453/600
+2026-02-25 15:41:22.0014 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 454/600
+2026-02-25 15:41:22.0014 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 455/600
+2026-02-25 15:41:22.0529 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 456/600
+2026-02-25 15:41:22.0529 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 457/600
+2026-02-25 15:41:22.0529 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 458/600
+2026-02-25 15:41:22.0529 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 459/600
+2026-02-25 15:41:22.0529 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 460/600
+2026-02-25 15:41:22.0529 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 461/600
+2026-02-25 15:41:22.0530 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 462/600
+2026-02-25 15:41:22.0530 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 463/600
+2026-02-25 15:41:22.0725 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 464/600
+2026-02-25 15:41:22.0725 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 465/600
+2026-02-25 15:41:22.0725 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 466/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 467/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 468/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 469/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 470/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 471/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 472/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 473/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 474/600
+2026-02-25 15:41:22.0726 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 475/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 476/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 477/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 478/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 479/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 480/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 481/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 482/600
+2026-02-25 15:41:22.0727 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 483/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 484/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 485/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 486/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 487/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 488/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 489/600
+2026-02-25 15:41:22.0728 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 490/600
+2026-02-25 15:41:22.0937 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 491/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 492/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 493/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 494/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 495/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 496/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 497/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 498/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 499/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 500/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 501/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 502/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 503/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 504/600
+2026-02-25 15:41:22.0938 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 505/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 506/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 507/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 508/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 509/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 510/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 511/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 512/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 513/600
+2026-02-25 15:41:22.0939 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 514/600
+2026-02-25 15:41:22.0940 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 515/600
+2026-02-25 15:41:22.0940 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 516/600
+2026-02-25 15:41:22.0941 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 517/600
+2026-02-25 15:41:22.0941 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 518/600
+2026-02-25 15:41:22.0942 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 519/600
+2026-02-25 15:41:22.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 520/600
+2026-02-25 15:41:22.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 521/600
+2026-02-25 15:41:22.0945 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 522/600
+2026-02-25 15:41:23.0035 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 523/600
+2026-02-25 15:41:23.0035 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 524/600
+2026-02-25 15:41:23.0035 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 525/600
+2026-02-25 15:41:23.0035 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 526/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 527/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 528/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 529/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 530/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 531/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 532/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 533/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 534/600
+2026-02-25 15:41:23.0036 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 535/600
+2026-02-25 15:41:23.0037 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 536/600
+2026-02-25 15:41:23.0037 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 537/600
+2026-02-25 15:41:23.0037 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 538/600
+2026-02-25 15:41:23.0144 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 539/600
+2026-02-25 15:41:23.0145 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 540/600
+2026-02-25 15:41:23.0146 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 541/600
+2026-02-25 15:41:23.0146 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 542/600
+2026-02-25 15:41:23.0147 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 543/600
+2026-02-25 15:41:23.0148 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 544/600
+2026-02-25 15:41:23.0151 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 545/600
+2026-02-25 15:41:23.0151 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 546/600
+2026-02-25 15:41:23.0152 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 547/600
+2026-02-25 15:41:23.0152 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 548/600
+2026-02-25 15:41:23.0152 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 549/600
+2026-02-25 15:41:23.0152 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 550/600
+2026-02-25 15:41:23.0152 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 551/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 552/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 553/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 554/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 555/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 556/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 557/600
+2026-02-25 15:41:23.0345 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 558/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 559/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 560/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 561/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 562/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 563/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 564/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 565/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 566/600
+2026-02-25 15:41:23.0346 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 567/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 568/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 569/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 570/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 571/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 572/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 573/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 574/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 575/600
+2026-02-25 15:41:23.0347 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 576/600
+2026-02-25 15:41:23.0964 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 577/600
+2026-02-25 15:41:23.0964 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 578/600
+2026-02-25 15:41:23.0964 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 579/600
+2026-02-25 15:41:24.0062 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 580/600
+2026-02-25 15:41:24.0062 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 581/600
+2026-02-25 15:41:24.0168 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 582/600
+2026-02-25 15:41:24.0271 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 583/600
+2026-02-25 15:41:24.0271 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 584/600
+2026-02-25 15:41:24.0272 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 585/600
+2026-02-25 15:41:24.0577 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 586/600
+2026-02-25 15:41:24.0577 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 587/600
+2026-02-25 15:41:24.0978 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 588/600
+2026-02-25 15:41:25.0082 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 589/600
+2026-02-25 15:41:25.0284 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 590/600
+2026-02-25 15:41:25.0285 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 591/600
+2026-02-25 15:41:25.0314 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 592/600
+2026-02-25 15:41:25.0491 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 593/600
+2026-02-25 15:41:25.0499 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 594/600
+2026-02-25 15:41:25.0508 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 595/600
+2026-02-25 15:41:26.0213 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 596/600
+2026-02-25 15:41:26.0407 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 597/600
+2026-02-25 15:41:26.0724 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 598/600
+2026-02-25 15:41:27.0434 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 599/600
+2026-02-25 15:41:28.0669 - INFO - graphrag.logger.progress - Summarize entity/relationship description progress: 600/600
+2026-02-25 15:41:28.0697 - INFO - graphrag.index.workflows.extract_graph - Workflow completed: extract_graph
+2026-02-25 15:41:28.0697 - INFO - graphrag.api.index - Workflow extract_graph completed successfully
+2026-02-25 15:41:28.0716 - INFO - graphrag.index.workflows.finalize_graph - Workflow started: finalize_graph
+2026-02-25 15:41:28.0716 - INFO - graphrag.utils.storage - reading table from storage: entities.parquet
+2026-02-25 15:41:28.0719 - INFO - graphrag.utils.storage - reading table from storage: relationships.parquet
+2026-02-25 15:41:28.0746 - INFO - graphrag.index.workflows.finalize_graph - Workflow completed: finalize_graph
+2026-02-25 15:41:28.0746 - INFO - graphrag.api.index - Workflow finalize_graph completed successfully
+2026-02-25 15:41:28.0754 - INFO - graphrag.index.workflows.extract_covariates - Workflow started: extract_covariates
+2026-02-25 15:41:28.0754 - INFO - graphrag.index.workflows.extract_covariates - Workflow completed: extract_covariates
+2026-02-25 15:41:28.0754 - INFO - graphrag.api.index - Workflow extract_covariates completed successfully
+2026-02-25 15:41:28.0754 - INFO - graphrag.index.workflows.create_communities - Workflow started: create_communities
+2026-02-25 15:41:28.0754 - INFO - graphrag.utils.storage - reading table from storage: entities.parquet
+2026-02-25 15:41:28.0757 - INFO - graphrag.utils.storage - reading table from storage: relationships.parquet
+2026-02-25 15:41:28.0812 - INFO - graphrag.index.workflows.create_communities - Workflow completed: create_communities
+2026-02-25 15:41:28.0812 - INFO - graphrag.api.index - Workflow create_communities completed successfully
+2026-02-25 15:41:28.0826 - INFO - graphrag.index.workflows.create_final_text_units - Workflow started: create_final_text_units
+2026-02-25 15:41:28.0826 - INFO - graphrag.utils.storage - reading table from storage: text_units.parquet
+2026-02-25 15:41:28.0830 - INFO - graphrag.utils.storage - reading table from storage: entities.parquet
+2026-02-25 15:41:28.0832 - INFO - graphrag.utils.storage - reading table from storage: relationships.parquet
+2026-02-25 15:41:28.0849 - INFO - graphrag.index.workflows.create_final_text_units - Workflow completed: create_final_text_units
+2026-02-25 15:41:28.0849 - INFO - graphrag.api.index - Workflow create_final_text_units completed successfully
+2026-02-25 15:41:28.0866 - INFO - graphrag.index.workflows.create_community_reports - Workflow started: create_community_reports
+2026-02-25 15:41:28.0866 - INFO - graphrag.utils.storage - reading table from storage: relationships.parquet
+2026-02-25 15:41:28.0869 - INFO - graphrag.utils.storage - reading table from storage: entities.parquet
+2026-02-25 15:41:28.0872 - INFO - graphrag.utils.storage - reading table from storage: communities.parquet
+2026-02-25 15:41:28.0884 - INFO - graphrag.index.operations.summarize_communities.graph_context.context_builder - Number of nodes at level=4 => 66
+2026-02-25 15:41:28.0991 - INFO - graphrag.index.operations.summarize_communities.graph_context.context_builder - Number of nodes at level=3 => 68
+2026-02-25 15:41:29.0100 - INFO - graphrag.index.operations.summarize_communities.graph_context.context_builder - Number of nodes at level=2 => 75
+2026-02-25 15:41:29.0214 - INFO - graphrag.index.operations.summarize_communities.graph_context.context_builder - Number of nodes at level=1 => 184
+2026-02-25 15:41:29.0425 - INFO - graphrag.index.operations.summarize_communities.graph_context.context_builder - Number of nodes at level=0 => 197
+2026-02-25 15:41:29.0698 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/cache/community_reporting
+2026-02-25 15:41:39.0125 - INFO - graphrag.logger.progress - level 4 summarize communities progress: 1/2
+2026-02-25 15:41:48.0135 - INFO - graphrag.logger.progress - level 4 summarize communities progress: 2/2
+2026-02-25 15:41:56.0725 - INFO - graphrag.logger.progress - level 3 summarize communities progress: 1/2
+2026-02-25 15:42:08.0915 - INFO - graphrag.logger.progress - level 3 summarize communities progress: 2/2
+2026-02-25 15:42:19.0047 - INFO - graphrag.logger.progress - level 2 summarize communities progress: 1/2
+2026-02-25 15:42:21.0300 - INFO - graphrag.logger.progress - level 2 summarize communities progress: 2/2
+2026-02-25 15:42:28.0266 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 1/26
+2026-02-25 15:42:28.0375 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 2/26
+2026-02-25 15:42:28.0375 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 3/26
+2026-02-25 15:42:29.0908 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 4/26
+2026-02-25 15:42:30.0114 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 5/26
+2026-02-25 15:42:30.0728 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 6/26
+2026-02-25 15:42:30.0928 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 7/26
+2026-02-25 15:42:31.0235 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 8/26
+2026-02-25 15:42:31.0951 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 9/26
+2026-02-25 15:42:32.0259 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 10/26
+2026-02-25 15:42:32.0463 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 11/26
+2026-02-25 15:42:32.0570 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 12/26
+2026-02-25 15:42:32.0790 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 13/26
+2026-02-25 15:42:33.0097 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 14/26
+2026-02-25 15:42:33.0186 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 15/26
+2026-02-25 15:42:33.0186 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 16/26
+2026-02-25 15:42:33.0290 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 17/26
+2026-02-25 15:42:33.0592 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 18/26
+2026-02-25 15:42:33.0697 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 19/26
+2026-02-25 15:42:34.0209 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 20/26
+2026-02-25 15:42:34.0308 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 21/26
+2026-02-25 15:42:35.0318 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 22/26
+2026-02-25 15:42:35.0346 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 23/26
+2026-02-25 15:42:35.0370 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 24/26
+2026-02-25 15:42:35.0843 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 25/26
+2026-02-25 15:42:39.0935 - INFO - graphrag.logger.progress - level 1 summarize communities progress: 26/26
+2026-02-25 15:42:46.0742 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 1/10
+2026-02-25 15:42:47.0922 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 2/10
+2026-02-25 15:42:49.0169 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 3/10
+2026-02-25 15:42:51.0101 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 4/10
+2026-02-25 15:42:51.0300 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 5/10
+2026-02-25 15:42:51.0916 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 6/10
+2026-02-25 15:42:52.0456 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 7/10
+2026-02-25 15:42:52.0679 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 8/10
+2026-02-25 15:42:53.0866 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 9/10
+2026-02-25 15:42:59.0498 - INFO - graphrag.logger.progress - level 0 summarize communities progress: 10/10
+2026-02-25 15:42:59.0519 - INFO - graphrag.index.workflows.create_community_reports - Workflow completed: create_community_reports
+2026-02-25 15:42:59.0519 - INFO - graphrag.api.index - Workflow create_community_reports completed successfully
+2026-02-25 15:42:59.0550 - INFO - graphrag.index.workflows.generate_text_embeddings - Workflow started: generate_text_embeddings
+2026-02-25 15:42:59.0550 - INFO - graphrag.index.workflows.generate_text_embeddings - Embedding the following fields: ['entity.description', 'community.full_content', 'text_unit.text']
+2026-02-25 15:42:59.0550 - INFO - graphrag.utils.storage - reading table from storage: text_units.parquet
+2026-02-25 15:42:59.0553 - INFO - graphrag.utils.storage - reading table from storage: entities.parquet
+2026-02-25 15:42:59.0556 - INFO - graphrag.utils.storage - reading table from storage: community_reports.parquet
+2026-02-25 15:42:59.0562 - INFO - graphrag.index.workflows.generate_text_embeddings - Creating embeddings
+2026-02-25 15:42:59.0563 - INFO - graphrag.index.operations.embed_text.embed_text - using vector store lancedb with container_name default for embedding entity.description: default-entity-description
+2026-02-25 15:42:59.0574 - INFO - graphrag.index.operations.embed_text.embed_text - uploading text embeddings batch 1/1 of size 500 to vector store
+2026-02-25 15:42:59.0575 - INFO - graphrag.storage.file_pipeline_storage - Creating file storage at /home/wtz/play/graphrag/cache/text_embedding
+2026-02-25 15:42:59.0591 - INFO - graphrag.index.operations.embed_text.strategies.openai - embedding 256 inputs via 256 snippets using 16 batches. max_batch_size=16, batch_max_tokens=8191
+2026-02-25 15:43:07.0046 - INFO - graphrag.logger.progress - generate embeddings progress: 1/16
+2026-02-25 15:43:07.0641 - INFO - graphrag.logger.progress - generate embeddings progress: 2/16
+2026-02-25 15:43:08.0074 - INFO - graphrag.logger.progress - generate embeddings progress: 3/16
+2026-02-25 15:43:08.0935 - INFO - graphrag.logger.progress - generate embeddings progress: 4/16
+2026-02-25 15:43:08.0936 - INFO - graphrag.logger.progress - generate embeddings progress: 5/16
+2026-02-25 15:43:11.0120 - INFO - graphrag.logger.progress - generate embeddings progress: 6/16
+2026-02-25 15:43:11.0495 - INFO - graphrag.logger.progress - generate embeddings progress: 7/16
+2026-02-25 15:43:11.0496 - INFO - graphrag.logger.progress - generate embeddings progress: 8/16
+2026-02-25 15:43:11.0621 - INFO - graphrag.logger.progress - generate embeddings progress: 9/16
+2026-02-25 15:43:12.0115 - INFO - graphrag.logger.progress - generate embeddings progress: 10/16
+2026-02-25 15:43:12.0274 - INFO - graphrag.logger.progress - generate embeddings progress: 11/16
+2026-02-25 15:43:15.0012 - INFO - graphrag.logger.progress - generate embeddings progress: 12/16
+2026-02-25 15:43:20.0142 - INFO - graphrag.logger.progress - generate embeddings progress: 13/16
+2026-02-25 15:43:20.0433 - INFO - graphrag.logger.progress - generate embeddings progress: 14/16
+2026-02-25 15:43:20.0751 - INFO - graphrag.logger.progress - generate embeddings progress: 15/16
+2026-02-25 15:43:28.0122 - INFO - graphrag.logger.progress - generate embeddings progress: 16/16
+2026-02-25 15:43:28.0244 - INFO - graphrag.index.operations.embed_text.embed_text - using vector store lancedb with container_name default for embedding community.full_content: default-community-full_content
+2026-02-25 15:43:28.0246 - INFO - graphrag.index.operations.embed_text.embed_text - uploading text embeddings batch 1/1 of size 500 to vector store
+2026-02-25 15:43:28.0263 - INFO - graphrag.index.operations.embed_text.strategies.openai - embedding 42 inputs via 42 snippets using 4 batches. max_batch_size=16, batch_max_tokens=8191
+2026-02-25 15:43:36.0919 - INFO - graphrag.logger.progress - generate embeddings progress: 1/4
+2026-02-25 15:43:38.0447 - INFO - graphrag.logger.progress - generate embeddings progress: 2/4
+2026-02-25 15:43:47.0457 - INFO - graphrag.logger.progress - generate embeddings progress: 3/4
+2026-02-25 15:43:51.0772 - INFO - graphrag.logger.progress - generate embeddings progress: 4/4
+2026-02-25 15:43:51.0788 - INFO - graphrag.index.operations.embed_text.embed_text - using vector store lancedb with container_name default for embedding text_unit.text: default-text_unit-text
+2026-02-25 15:43:51.0789 - INFO - graphrag.index.operations.embed_text.embed_text - uploading text embeddings batch 1/1 of size 500 to vector store
+2026-02-25 15:43:51.0819 - INFO - graphrag.index.operations.embed_text.strategies.openai - embedding 42 inputs via 42 snippets using 7 batches. max_batch_size=16, batch_max_tokens=8191
+2026-02-25 15:43:56.0356 - INFO - graphrag.logger.progress - generate embeddings progress: 1/7
+2026-02-25 15:43:56.0457 - INFO - graphrag.logger.progress - generate embeddings progress: 2/7
+2026-02-25 15:43:56.0962 - INFO - graphrag.logger.progress - generate embeddings progress: 3/7
+2026-02-25 15:43:57.0381 - INFO - graphrag.logger.progress - generate embeddings progress: 4/7
+2026-02-25 15:44:00.0048 - INFO - graphrag.logger.progress - generate embeddings progress: 5/7
+2026-02-25 15:44:00.0649 - INFO - graphrag.logger.progress - generate embeddings progress: 6/7
+2026-02-25 15:44:04.0652 - INFO - graphrag.logger.progress - generate embeddings progress: 7/7
+2026-02-25 15:44:04.0663 - INFO - graphrag.index.workflows.generate_text_embeddings - Workflow completed: generate_text_embeddings
+2026-02-25 15:44:04.0664 - INFO - graphrag.api.index - Workflow generate_text_embeddings completed successfully
+2026-02-25 15:44:04.0696 - INFO - graphrag.index.run.run_pipeline - Indexing pipeline complete.
+2026-02-25 15:44:04.0699 - INFO - graphrag.cli.index - All workflows completed successfully.
+2026-03-01 18:11:24.0652 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 18:11:24.0652 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "file",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        },
+        "base_dir": "cache"
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 18:21:27.0148 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 18:22:46.0981 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 20:50:02.0287 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 20:50:02.0288 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "file",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        },
+        "base_dir": "cache"
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 20:50:07.0589 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 20:50:07.0589 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 20:50:57.0406 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 20:50:57.0407 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "file",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        },
+        "base_dir": "cache"
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 20:50:57.0410 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 20:50:57.0410 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 20:52:24.0978 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 20:52:24.0978 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "file",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        },
+        "base_dir": "cache"
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 20:52:24.0982 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 20:52:24.0982 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 20:53:21.0961 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 20:53:21.0962 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "file",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        },
+        "base_dir": "cache"
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 20:53:21.0963 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 20:53:21.0963 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 20:54:51.0507 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 20:54:51.0507 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "json",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        }
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 20:54:51.0511 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 20:54:51.0511 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 20:54:51.0514 - INFO - graphrag.index.run.run_pipeline - Running standard indexing.
+2026-03-01 20:54:51.0514 - INFO - graphrag.index.run.run_pipeline - Executing pipeline...
+2026-03-01 21:04:04.0848 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 21:04:04.0849 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "json",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        }
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 21:04:04.0852 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 21:04:04.0852 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 21:04:04.0856 - INFO - graphrag.index.run.run_pipeline - Running standard indexing.
+2026-03-01 21:04:04.0857 - INFO - graphrag.index.run.run_pipeline - Executing pipeline...
+2026-03-01 21:04:04.0866 - INFO - graphrag.index.workflows.load_input_documents - Final # of rows loaded: 1
+2026-03-01 21:04:04.0912 - INFO - graphrag.api.index - Workflow load_input_documents completed successfully
+2026-03-01 21:04:04.0924 - INFO - graphrag.index.workflows.create_base_text_units - Workflow started: create_base_text_units
+2026-03-01 21:21:14.0700 - INFO - graphrag.index.workflows.create_base_text_units - Starting chunking process for 1 documents
+2026-03-01 21:21:14.0819 - INFO - graphrag.index.workflows.create_base_text_units - chunker progress:  1/1
+2026-03-01 21:44:59.0745 - INFO - graphrag.cli.index - Starting pipeline run. False
+2026-03-01 21:44:59.0745 - INFO - graphrag.cli.index - Using default configuration: {
+    "completion_models": {},
+    "embedding_models": {},
+    "concurrent_requests": 25,
+    "async_mode": "threaded",
+    "input": {
+        "type": "text",
+        "encoding": null,
+        "file_pattern": null,
+        "id_column": null,
+        "title_column": null,
+        "text_column": null,
+        "storage": {
+            "type": "file",
+            "base_dir": "input"
+        },
+        "file_type": "text"
+    },
+    "input_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/input",
+        "account_url": null,
+        "database_name": null
+    },
+    "chunking": {
+        "type": "tokens",
+        "encoding_model": "o200k_base",
+        "size": 1200,
+        "overlap": 100,
+        "prepend_metadata": null
+    },
+    "output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/output",
+        "account_url": null,
+        "database_name": null
+    },
+    "update_output_storage": {
+        "type": "file",
+        "encoding": null,
+        "base_dir": "/home/wtz/play/graphrag/update_output",
+        "account_url": null,
+        "database_name": null
+    },
+    "table_provider": {
+        "type": "parquet"
+    },
+    "cache": {
+        "type": "json",
+        "storage": {
+            "type": "file",
+            "encoding": null,
+            "base_dir": "cache",
+            "account_url": null,
+            "database_name": null
+        }
+    },
+    "reporting": {
+        "type": "file",
+        "base_dir": "/home/wtz/play/graphrag/logs",
+        "account_url": null
+    },
+    "vector_store": {
+        "type": "lancedb",
+        "db_uri": "/home/wtz/play/graphrag/output/lancedb",
+        "url": null,
+        "audience": null,
+        "database_name": null,
+        "vector_size": 3072,
+        "index_schema": {
+            "community_full_content": {
+                "index_name": "community_full_content",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "entity_description": {
+                "index_name": "entity_description",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            },
+            "text_unit_text": {
+                "index_name": "text_unit_text",
+                "id_field": "id",
+                "vector_field": "vector",
+                "vector_size": 3072,
+                "fields": {}
+            }
+        },
+        "default_vector_store": {
+            "type": "lancedb",
+            "db_uri": "output/lancedb",
+            "container_name": "==== REDACTED ===="
+        }
+    },
+    "workflows": null,
+    "embed_text": {
+        "embedding_model_id": "default_embedding_model",
+        "model_instance_name": "text_embedding",
+        "batch_size": 16,
+        "batch_max_tokens": 8191,
+        "names": [
+            "entity_description",
+            "community_full_content",
+            "text_unit_text"
+        ]
+    },
+    "extract_graph": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_graph",
+        "prompt": "prompts/extract_graph.txt",
+        "entity_types": [
+            "organization",
+            "person",
+            "geo",
+            "event"
+        ],
+        "max_gleanings": 1
+    },
+    "summarize_descriptions": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "summarize_descriptions",
+        "prompt": "prompts/summarize_descriptions.txt",
+        "max_length": 500,
+        "max_input_tokens": 4000
+    },
+    "extract_graph_nlp": {
+        "normalize_edge_weights": true,
+        "text_analyzer": {
+            "extractor_type": "regex_english",
+            "model_name": "en_core_web_md",
+            "max_word_length": 15,
+            "word_delimiter": " ",
+            "include_named_entities": true,
+            "exclude_nouns": [
+                "stuff",
+                "thing",
+                "things",
+                "bunch",
+                "bit",
+                "bits",
+                "people",
+                "person",
+                "okay",
+                "hey",
+                "hi",
+                "hello",
+                "laughter",
+                "oh"
+            ],
+            "exclude_entity_tags": [
+                "DATE"
+            ],
+            "exclude_pos_tags": [
+                "DET",
+                "PRON",
+                "INTJ",
+                "X"
+            ],
+            "noun_phrase_tags": [
+                "PROPN",
+                "NOUNS"
+            ],
+            "noun_phrase_grammars": {
+                "PROPN,PROPN": "PROPN",
+                "NOUN,NOUN": "NOUNS",
+                "NOUNS,NOUN": "NOUNS",
+                "ADJ,ADJ": "ADJ",
+                "ADJ,NOUN": "NOUNS"
+            }
+        },
+        "concurrent_requests": 25,
+        "async_mode": "threaded"
+    },
+    "prune_graph": {
+        "min_node_freq": 2,
+        "max_node_freq_std": null,
+        "min_node_degree": 1,
+        "max_node_degree_std": null,
+        "min_edge_weight_pct": 40.0,
+        "remove_ego_nodes": true,
+        "lcc_only": false
+    },
+    "cluster_graph": {
+        "max_cluster_size": 10,
+        "use_lcc": true,
+        "seed": 3735928559
+    },
+    "extract_claims": {
+        "enabled": false,
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "extract_claims",
+        "prompt": "prompts/extract_claims.txt",
+        "description": "Any claims or facts that could be relevant to information discovery.",
+        "max_gleanings": 1
+    },
+    "community_reports": {
+        "completion_model_id": "default_completion_model",
+        "model_instance_name": "community_reporting",
+        "graph_prompt": "prompts/community_report_graph.txt",
+        "text_prompt": "prompts/community_report_text.txt",
+        "max_length": 2000,
+        "max_input_length": 8000
+    },
+    "snapshots": {
+        "embeddings": false,
+        "graphml": false,
+        "raw_graph": false
+    },
+    "local_search": {
+        "prompt": "prompts/local_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "text_unit_prop": 0.5,
+        "community_prop": 0.15,
+        "conversation_history_max_turns": 5,
+        "top_k_entities": 10,
+        "top_k_relationships": 10,
+        "max_context_tokens": 12000
+    },
+    "global_search": {
+        "map_prompt": "prompts/global_search_map_system_prompt.txt",
+        "reduce_prompt": "prompts/global_search_reduce_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "knowledge_prompt": "prompts/global_search_knowledge_system_prompt.txt",
+        "max_context_tokens": 12000,
+        "data_max_tokens": 12000,
+        "map_max_length": 1000,
+        "reduce_max_length": 2000,
+        "dynamic_search_threshold": 1,
+        "dynamic_search_keep_parent": false,
+        "dynamic_search_num_repeats": 1,
+        "dynamic_search_use_summary": false,
+        "dynamic_search_max_level": 2
+    },
+    "drift_search": {
+        "prompt": "prompts/drift_search_system_prompt.txt",
+        "reduce_prompt": "prompts/drift_search_reduce_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "data_max_tokens": 12000,
+        "reduce_max_tokens": null,
+        "reduce_temperature": 0,
+        "reduce_max_completion_tokens": null,
+        "concurrency": 32,
+        "drift_k_followups": 20,
+        "primer_folds": 5,
+        "primer_llm_max_tokens": 12000,
+        "n_depth": 3,
+        "local_search_text_unit_prop": 0.9,
+        "local_search_community_prop": 0.1,
+        "local_search_top_k_mapped_entities": 10,
+        "local_search_top_k_relationships": 10,
+        "local_search_max_data_tokens": 12000,
+        "local_search_temperature": 0,
+        "local_search_top_p": 1,
+        "local_search_n": 1,
+        "local_search_llm_max_gen_tokens": null,
+        "local_search_llm_max_gen_completion_tokens": null
+    },
+    "basic_search": {
+        "prompt": "prompts/basic_search_system_prompt.txt",
+        "completion_model_id": "default_completion_model",
+        "embedding_model_id": "default_embedding_model",
+        "k": 10,
+        "max_context_tokens": 12000
+    }
+}
+2026-03-01 21:44:59.0749 - INFO - graphrag.api.index - Initializing indexing pipeline...
+2026-03-01 21:44:59.0749 - INFO - graphrag.index.workflows.factory - Creating pipeline with workflows: ['load_input_documents', 'create_base_text_units', 'create_final_documents', 'extract_graph', 'finalize_graph', 'extract_covariates', 'create_communities', 'create_final_text_units', 'create_community_reports', 'generate_text_embeddings']
+2026-03-01 21:44:59.0751 - INFO - graphrag.index.run.run_pipeline - Running standard indexing.
+2026-03-01 21:44:59.0753 - INFO - graphrag.index.run.run_pipeline - Executing pipeline...
+2026-03-01 21:44:59.0763 - INFO - graphrag.index.workflows.load_input_documents - Final # of rows loaded: 1
+2026-03-01 21:44:59.0805 - INFO - graphrag.api.index - Workflow load_input_documents completed successfully
+2026-03-01 21:44:59.0816 - INFO - graphrag.index.workflows.create_base_text_units - Workflow started: create_base_text_units
+2026-03-01 21:45:00.0476 - INFO - graphrag.index.workflows.create_base_text_units - Starting chunking process for 1 documents
+2026-03-01 21:45:00.0590 - INFO - graphrag.index.workflows.create_base_text_units - chunker progress:  1/1
+2026-03-01 21:45:00.0595 - INFO - graphrag.index.workflows.create_base_text_units - Workflow completed: create_base_text_units
+2026-03-01 21:45:00.0615 - INFO - graphrag.api.index - Workflow create_base_text_units completed successfully
+2026-03-01 21:45:00.0616 - INFO - graphrag.index.workflows.create_final_documents - Workflow started: create_final_documents
