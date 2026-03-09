@@ -220,6 +220,7 @@ class CogRAG:
             # ----------------------------------------------------------------------------
             logger.info(f"[New Docs] inserting {len(new_docs)} docs")
 
+            # 分块与分块去重
             inserting_chunks = {}
             for doc_key, doc in new_docs.items():
                 chunks = {
