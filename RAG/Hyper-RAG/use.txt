@@ -1,0 +1,12 @@
+openai_complete_if_cache	OpenAI 非流式补全 + 缓存 + 重试
+openai_complete_stream_if_cache	OpenAI 流式补全，缓存命中则按块回放
+azure_openai_complete_if_cache	Azure 非流式补全 + 缓存 + 重试
+bedrock_complete_if_cache	Bedrock Converse 补全 + 缓存 + 重试
+gpt_4o_complete / gpt_4o_mini_complete	固定 gpt-4o / gpt-4o-mini 的便捷封装
+azure_openai_complete / bedrock_complete	固定 Azure / Bedrock 模型的便捷封装
+openai_embedding / azure_openai_embedding	OpenAI / Azure 嵌入，带维度和重试
+siliconcloud_embedding	硅基流动嵌入，base64 解码
+bedrock_embedding	Bedrock 嵌入（Titan / Cohere）
+BedrockError	Bedrock 专用异常
+Model	单 LLM 配置（gen_func + kwargs）
+MultiModel	多 Model 轮询，统一 llm_model_func 接口

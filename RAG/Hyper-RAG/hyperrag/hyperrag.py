@@ -202,6 +202,7 @@ class HyperRAG:
             # ----------------------------------------------------------------------------
             logger.info(f"[New Docs] inserting {len(new_docs)} docs")
 
+            # 生成预料库集合
             inserting_chunks = {}
             for doc_key, doc in new_docs.items():
                 chunks = {

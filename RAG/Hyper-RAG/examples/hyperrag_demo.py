@@ -63,7 +63,7 @@ if __name__ == "__main__":
     )
 
     # read the text file
-    mock_data_file_path = Path("examples/mock_data.txt")
+    mock_data_file_path = Path("./mock_data.txt")
     with open(mock_data_file_path, "r", encoding="utf-8") as file:
         texts = file.read()
 
