@@ -52,7 +52,9 @@ def insert_texts_with_retry(rag, texts, retries=3, delay=5):
 
 if __name__ == "__main__":
     data_name = "mock"
-    WORKING_DIR = Path("caches") / data_name
+    # Cache under Hyper-RAG project dir so it's easy to find when running from any cwd
+    _demo_dir = Path(__file__).resolve().parent.parent  # RAG/Hyper-RAG
+    WORKING_DIR = _demo_dir / "caches" / data_name
     WORKING_DIR.mkdir(parents=True, exist_ok=True)
     rag = HyperRAG(
         working_dir=WORKING_DIR,
@@ -62,8 +64,8 @@ if __name__ == "__main__":
         ),
     )
 
-    # read the text file
-    mock_data_file_path = Path("./mock_data.txt")
+    # read the text file (relative to this script so it works from any cwd)
+    mock_data_file_path = Path(__file__).resolve().parent / "mock_data.txt"
     with open(mock_data_file_path, "r", encoding="utf-8") as file:
         texts = file.read()
 

@@ -202,7 +202,7 @@ class HyperRAG:
             # ----------------------------------------------------------------------------
             logger.info(f"[New Docs] inserting {len(new_docs)} docs")
 
-            # 生成预料库集合
+            # 生成语料库集合
             inserting_chunks = {}
             for doc_key, doc in new_docs.items():
                 chunks = {
@@ -210,7 +210,7 @@ class HyperRAG:
                         **dp,
                         "full_doc_id": doc_key,
                     }
-                    for dp in chunking_by_token_size(
+                    for dp in chunking_by_token_size(   # 这里返回一个列表
                         doc["content"],
                         overlap_token_size=self.chunk_overlap_token_size,
                         max_token_size=self.chunk_token_size,
@@ -232,6 +232,7 @@ class HyperRAG:
 
             await self.chunks_vdb.upsert(inserting_chunks)
             # ----------------------------------------------------------------------------
+            # 提取实体
             logger.info("[Entity Extraction]...")
             maybe_new_kg = await extract_entities(
                 inserting_chunks,

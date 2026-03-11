@@ -34,9 +34,9 @@ from .prompt import GRAPH_FIELD_SEP, PROMPTS
 def chunking_by_token_size(
     content: str, overlap_token_size=128, max_token_size=1024, tiktoken_model="gpt-4o"
 ):
-    tokens = encode_string_by_tiktoken(content, model_name=tiktoken_model)
+    tokens = encode_string_by_tiktoken(content, model_name=tiktoken_model)  # 这里的tokens是什么？ - 一个list, 存储token id序列
     results = []
-    for index, start in enumerate(
+    for index, start in enumerate(  # 还原为文本
         range(0, len(tokens), max_token_size - overlap_token_size)
     ):
         chunk_content = decode_tokens_by_tiktoken(
