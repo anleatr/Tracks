@@ -1093,7 +1093,7 @@ async def hyper_query(
     kw_prompt_temp = PROMPTS["keywords_extraction"]
     kw_prompt = kw_prompt_temp.format(query=query)
 
-    result = await use_model_func(kw_prompt)
+    result = await use_model_func(kw_prompt)    # 首先提取query中的关键词
 
     try:
         keywords_data = json.loads(result)
@@ -1124,6 +1124,7 @@ async def hyper_query(
             ll_keywords: Find information based on low-level keywords.
             hl_keywords: Define topic information based on high-level keywords.
     """
+    # 构建实体上下文
     if entity_keywords:
         """
         low_level_context: Retrieves vertices and their first-order neighbor hyperedges.
@@ -1136,7 +1137,7 @@ async def hyper_query(
             text_chunks_db,
             query_param,
         )
-
+    # 构建关系上下文
     if relation_keywords:
         relation_context = await _build_relation_query_context(
             relation_keywords,
@@ -1150,18 +1151,24 @@ async def hyper_query(
         combine the information from the local_query and global_query,
         so that we can have the final retrieval information.
     """
+    # 合并两个上下文的CSV字符串
     context = combine_contexts(relation_context.get("context"), entity_context.get("context"))
 
+    # 合并结构化数据
     contextJson = {
         "entities": deduplicate_by_key(entity_context.get("entities", []) + relation_context.get("entities", []), "entity_name"),
         "hyperedges": deduplicate_by_key(entity_context.get("hyperedges", []) + relation_context.get("hyperedges", []), "entity_set"),
         "text_units": deduplicate_by_key(entity_context.get("text_units", []) + relation_context.get("text_units", []), "content")
     }
 
+    # 如果需要直接返回上下文
     if query_param.only_need_context:
         return context
+    
     if context is None:
         return PROMPTS["fail_response"]
+    # 否则使用LLM构建最终答案
+    # 用关键词构建define_str
     define_str = ""
     if entity_keywords or relation_keywords:
         """
@@ -1171,6 +1178,8 @@ async def hyper_query(
         relation_keywords = relation_keywords if relation_keywords else ""
         define_str = PROMPTS["rag_define"]
         define_str = define_str.format(ll_keywords=entity_keywords,hl_keywords=relation_keywords)
+    
+    # 用合并后的context构建sys_prompt
     sys_prompt_temp = PROMPTS["rag_response"]
     sys_prompt = sys_prompt_temp.format(
         context_data=context, response_type=query_param.response_type
