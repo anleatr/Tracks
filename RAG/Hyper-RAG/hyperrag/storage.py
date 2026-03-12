@@ -17,6 +17,7 @@ from .base import (
 @dataclass
 class JsonKVStorage(BaseKVStorage):
     def __post_init__(self):
+        # 这里太方便了，一次index之后后面初始化会直接加载好数据
         working_dir = self.global_config["working_dir"]
         self._file_name = os.path.join(working_dir, f"kv_store_{self.namespace}.json")
         self._data = load_json(self._file_name) or {}
