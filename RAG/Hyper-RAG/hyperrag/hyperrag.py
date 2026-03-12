@@ -234,7 +234,7 @@ class HyperRAG:
             # ----------------------------------------------------------------------------
             # 提取实体
             logger.info("[Entity Extraction]...")
-            maybe_new_kg = await extract_entities(
+            maybe_new_kg = await extract_entities(  # 这里的new_kg是什么
                 inserting_chunks,
                 knowledge_hypergraph_inst=self.chunk_entity_relation_hypergraph,
                 entity_vdb=self.entities_vdb,
