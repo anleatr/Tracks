@@ -407,7 +407,7 @@ async def extract_entities(
     global_config: dict,
 ) -> BaseHypergraphStorage | None:
     use_llm_func: callable = global_config["llm_model_func"]
-    entity_extract_max_gleaning = global_config["entity_extract_max_gleaning"]
+    entity_extract_max_gleaning = global_config["entity_extract_max_gleaning"]  # 最多做多少论补充抽取
 
     ordered_chunks = list(chunks.items())
 
@@ -439,16 +439,18 @@ async def extract_entities(
     already_relations_high = 0
 
     async def _process_single_content(chunk_key_dp: tuple[str, TextChunkSchema]):
+        # 首轮抽取
         nonlocal already_processed, already_entities, already_relations, already_relations_low, already_relations_high
         chunk_key = chunk_key_dp[0]
         chunk_dp = chunk_key_dp[1]
         content = chunk_dp["content"]
         hint_prompt = entity_extract_prompt.format(**context_base, input_text=content)
 
-        final_result = await use_llm_func(hint_prompt)
+        final_result = await use_llm_func(hint_prompt)  # 按规则组织的纯文本
         if final_result is None:
             return None,None,None,None
 
+        # 多论抽取检测遗漏
         history = pack_user_ass_to_openai_messages(hint_prompt, final_result)
         for now_glean_index in range(entity_extract_max_gleaning):
             glean_result = await use_llm_func(continue_prompt, history_messages=history)
@@ -466,12 +468,14 @@ async def extract_entities(
             if_loop_result = if_loop_result.strip().strip('"').strip("'").lower()
             if if_loop_result != "yes":
                 break
-
-        records = split_string_by_multi_markers(
+        
+        # 切分
+        records = split_string_by_multi_markers(    # List[str], 每个元素是一条记录
             final_result,
             [context_base["record_delimiter"], context_base["completion_delimiter"]],
         )
 
+        # 对record进行分类
         maybe_nodes = defaultdict(list)
         maybe_edges = defaultdict(list)
         maybe_edges_low = defaultdict(list)
@@ -484,13 +488,16 @@ async def extract_entities(
             record_attributes = split_string_by_multi_markers(
                 record, [context_base["tuple_delimiter"]]
             )
+
+            # 先尝试解析实体
             if_entities = await _handle_single_entity_extraction(
                 record_attributes, chunk_key
             )
             if if_entities is not None:
                 maybe_nodes[if_entities["entity_name"]].append(if_entities)
                 continue
-
+            
+            # 在尝试解析为低阶关系
             if_relation = await _handle_single_relationship_extraction_low(
                 record_attributes, chunk_key
             )
@@ -502,6 +509,7 @@ async def extract_entities(
                     if_relation
                 )
 
+            # 最后尝试解析为高阶关系
             if_relation = await _handle_single_relationship_extraction_high(
                 record_attributes, chunk_key
             )
@@ -569,6 +577,7 @@ async def extract_entities(
     """
         update the hypergraph database
     """
+
     all_entities_data = await asyncio.gather(
         *[
             _merge_nodes_then_upsert(k, v, knowledge_hypergraph_inst, global_config)
@@ -591,6 +600,7 @@ async def extract_entities(
         )
         return None
 
+    # 写入向量合宿剧库
     if entity_vdb is not None:
         data_for_vdb = {
             compute_mdhash_id(dp["entity_name"], prefix="ent-"): {

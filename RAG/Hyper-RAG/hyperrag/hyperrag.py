@@ -252,6 +252,7 @@ class HyperRAG:
             await self._insert_done()
 
     async def _insert_done(self):
+        # 将内存写入存储
         tasks = []
         for storage_inst in [
             self.full_docs,
@@ -264,8 +265,8 @@ class HyperRAG:
         ]:
             if storage_inst is None:
                 continue
-            tasks.append(cast(StorageNameSpace, storage_inst).index_done_callback())
-        await asyncio.gather(*tasks)
+            tasks.append(cast(StorageNameSpace, storage_inst).index_done_callback()) # 收集任务
+        await asyncio.gather(*tasks)    # 并发执行
 
     def query(self, query: str, param: QueryParam = QueryParam()):
         loop = always_get_an_event_loop()
