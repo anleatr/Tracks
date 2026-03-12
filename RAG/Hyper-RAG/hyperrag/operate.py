@@ -1079,11 +1079,11 @@ async def _find_related_text_unit_from_relationships(
 
 async def hyper_query(
     query,
-    knowledge_hypergraph_inst: BaseHypergraphStorage,
-    entities_vdb: BaseVectorStorage,
-    relationships_vdb: BaseVectorStorage,
-    text_chunks_db: BaseKVStorage[TextChunkSchema],
-    query_param: QueryParam,
+    knowledge_hypergraph_inst: BaseHypergraphStorage,   # 超图数据库
+    entities_vdb: BaseVectorStorage,    # 实例向量数据库
+    relationships_vdb: BaseVectorStorage,   # 关系数据库
+    text_chunks_db: BaseKVStorage[TextChunkSchema], # 原始文本
+    query_param: QueryParam,    # 询问模式
     global_config: dict,
 ):
     entity_context = None
