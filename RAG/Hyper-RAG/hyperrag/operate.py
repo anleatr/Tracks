@@ -638,10 +638,12 @@ async def _build_entity_query_context(
     entities_vdb: BaseVectorStorage,
     text_chunks_db: BaseKVStorage[TextChunkSchema],
     query_param: QueryParam,
-):
-    results = await entities_vdb.query(query, top_k=query_param.top_k)
+):  
+    # 检索相关实体
+    results = await entities_vdb.query(query, top_k=query_param.top_k)  # 向量检索相关实体
     if not len(results):
         return None
+    # 从超图获取实体详细信息
     node_datas = await asyncio.gather(
         *[knowledge_hypergraph_inst.get_vertex(r["entity_name"]) for r in results]
     )
@@ -658,10 +660,12 @@ async def _build_entity_query_context(
         if n is not None
     ]
 
+    # 找到相关文本块
     use_text_units = await _find_most_related_text_unit_from_entities(
         node_datas, query_param, text_chunks_db, knowledge_hypergraph_inst
     )
 
+    # 找到相关关系
     use_relations = await _find_most_related_edges_from_entities(
         node_datas, query_param, knowledge_hypergraph_inst
     )
@@ -669,6 +673,7 @@ async def _build_entity_query_context(
     logger.info(
         f"entity query uses {len(node_datas)} entites, {len(use_relations)} relations, {len(use_text_units)} text units"
     )
+    # 构建上下文
     entities_section_list = [["id", "entity", "type", "description", "additional properties", "rank"]]
     for i, n in enumerate(node_datas):
         entities_section_list.append(
