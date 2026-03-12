@@ -261,7 +261,7 @@ async def _merge_nodes_then_upsert(
     already_additional_properties = []
 
     already_node = await knowledge_hypergraph_inst.get_vertex(entity_name)
-    if already_node is not None:
+    if already_node is not None:    # 如果该实体已经存在
     #     """------------------------------------------------------------------"""
     #     if already_node["entity_type"] is None:
     #         print(f"The entity_type of {already_node['entity_name']} is None")
@@ -277,6 +277,7 @@ async def _merge_nodes_then_upsert(
         already_description.append(already_node["description"])
         already_additional_properties.append(already_node["additional_properties"])
 
+    # 合并实体类型
     entity_type = sorted(
         Counter(
             [dp["entity_type"] for dp in nodes_data] + already_entity_types
@@ -295,6 +296,7 @@ async def _merge_nodes_then_upsert(
     # """------------------------------------------------------------------"""
 
     # nodes_data = [dp["description"] for dp in nodes_data if dp["description"] is not None]
+    # 合并description
     description = GRAPH_FIELD_SEP.join(
         sorted(set([dp["description"] for dp in nodes_data] + already_description))
     )
@@ -308,12 +310,15 @@ async def _merge_nodes_then_upsert(
     source_id = GRAPH_FIELD_SEP.join(
         set([dp["source_id"] for dp in nodes_data] + already_source_ids)
     )
+    # 合并LLM摘要
     description = await _handle_entity_summary(
         entity_name, description, global_config
     )
     additional_properties = await _handle_entity_additional_properties(  # 应该新建一个合并附属信息的函数，以及prompt
         entity_name, additional_properties, global_config
     )
+
+    # 写回超图
     node_data = dict(
         entity_type=entity_type,
         description=description,
@@ -444,7 +449,7 @@ async def extract_entities(
         chunk_key = chunk_key_dp[0]
         chunk_dp = chunk_key_dp[1]
         content = chunk_dp["content"]
-        hint_prompt = entity_extract_prompt.format(**context_base, input_text=content)
+        hint_prompt = entity_extract_prompt.format(**context_base, input_text=content)  # 给prompt模板添加变量
 
         final_result = await use_llm_func(hint_prompt)  # 按规则组织的纯文本
         if final_result is None:
@@ -485,7 +490,7 @@ async def extract_entities(
             if record is None:
                 continue
             record = record.group(1)
-            record_attributes = split_string_by_multi_markers(
+            record_attributes = split_string_by_multi_markers(  # List[str]
                 record, [context_base["tuple_delimiter"]]
             )
 
@@ -550,7 +555,7 @@ async def extract_entities(
     # use_llm_func is wrapped in ascynio.Semaphore, limiting max_async callings
     begin_time = datetime.now()
     results = await asyncio.gather(
-        *[_process_single_content(c) for c in ordered_chunks ]
+        *[_process_single_content(c) for c in ordered_chunks ]  # 异步io
     )
     
     # print()  # clear the progress bar
@@ -577,8 +582,9 @@ async def extract_entities(
     """
         update the hypergraph database
     """
+    # 提取实体和关系之后更系超图
 
-    all_entities_data = await asyncio.gather(
+    all_entities_data = await asyncio.gather(   # List[Dict]
         *[
             _merge_nodes_then_upsert(k, v, knowledge_hypergraph_inst, global_config)
             for k, v in maybe_nodes.items()
@@ -600,16 +606,16 @@ async def extract_entities(
         )
         return None
 
-    # 写入向量合宿剧库
+    # 写入向量数据库
     if entity_vdb is not None:
         data_for_vdb = {
             compute_mdhash_id(dp["entity_name"], prefix="ent-"): {
                 "content": dp["entity_name"] + dp["description"],
                 "entity_name": dp["entity_name"],
             }
-            for dp in all_entities_data
+            for dp in all_entities_data # dict
         }
-        await entity_vdb.upsert(data_for_vdb)
+        await entity_vdb.upsert(data_for_vdb)   # 内存中的向量数据库
 
     if relationships_vdb is not None:
         data_for_vdb = {
