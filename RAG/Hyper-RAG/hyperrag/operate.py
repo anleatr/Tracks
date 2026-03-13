@@ -643,6 +643,7 @@ async def _build_entity_query_context(
     results = await entities_vdb.query(query, top_k=query_param.top_k)  # 向量检索相关实体
     if not len(results):
         return None
+
     # 从超图获取实体详细信息
     node_datas = await asyncio.gather(
         *[knowledge_hypergraph_inst.get_vertex(r["entity_name"]) for r in results]
@@ -892,6 +893,7 @@ async def _build_relation_query_context(
 ):
     results = await relationships_vdb.query(keywords, top_k=query_param.top_k)
 
+
     if not len(results):
         return None
 
@@ -913,6 +915,7 @@ async def _build_relation_query_context(
     edge_datas = sorted(
         edge_datas, key=lambda x: (x["rank"], x["weight"]), reverse=True
     )
+    # 按description的token截断
     edge_datas = truncate_list_by_token_size(
         edge_datas,
         key=lambda x: x["description"],
