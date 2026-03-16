@@ -52,7 +52,7 @@ def insert_texts_with_retry(rag, texts, retries=3, delay=5):
 
 
 if __name__ == "__main__":
-    data_name = "onetry"
+    data_name = "mock"
     # Cache under Hyper-RAG project dir so it's easy to find when running from any cwd
     _demo_dir = Path(__file__).resolve().parent.parent  # RAG/Hyper-RAG
     WORKING_DIR = _demo_dir / "caches" / data_name
@@ -68,24 +68,24 @@ if __name__ == "__main__":
     )
 
     # read the text file (relative to this script so it works from any cwd)
-    # mock_data_file_path = Path(__file__).resolve().parent / "mock_data.txt"
-    # with open(mock_data_file_path, "r", encoding="utf-8") as file:
-    #     texts = file.read()
+    mock_data_file_path = Path(__file__).resolve().parent / "mock_data.txt"
+    with open(mock_data_file_path, "r", encoding="utf-8") as file:
+        texts = file.read()
 
-    # Insert the text into the RAG
-    # insert_texts_with_retry(rag, texts)
+    # # Insert the text into the RAG
+    insert_texts_with_retry(rag, texts)
 
     # Perform different types of queries and handle potential errors
-    # try:
-    #     print("\n\n\nPerforming Naive RAG...")
-    #     print(
-    #         rag.query(
-    #             "What are the top themes in this story?", 
-    #             param=QueryParam(mode="naive")
-    #         )
-    #     )
-    # except Exception as e:
-    #     print(f"Error performing naive-rag search: {e}")
+    try:
+        print("\n\n\nPerforming Naive RAG...")
+        print(
+            rag.query(
+                "What are the top themes in this story?", 
+                param=QueryParam(mode="naive")
+            )
+        )
+    except Exception as e:
+        print(f"Error performing naive-rag search: {e}")
 
     try:
         print("\n\n\nPerforming Hyper-RAG...")

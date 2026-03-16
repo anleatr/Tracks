@@ -513,6 +513,7 @@ async def extract_entities(
                 maybe_edges_low[tuple((if_relation["entityN"]))].append(
                     if_relation
                 )
+                continue
 
             # 最后尝试解析为高阶关系
             if_relation = await _handle_single_relationship_extraction_high(
