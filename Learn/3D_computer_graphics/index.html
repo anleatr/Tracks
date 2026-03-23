@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>网格模型编辑器 - Mesh Editor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0d1117;
+      color: #e0e0e0;
+      overflow: hidden;
+      height: 100vh;
+    }
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 300px;
+      height: 100%;
+      background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+      padding: 20px;
+      overflow-y: auto;
+      z-index: 10;
+      border-right: 1px solid #30363d;
+    }
+    #sidebar::-webkit-scrollbar { width: 6px; }
+    #sidebar::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    #viewport { position: fixed; top: 0; left: 300px; right: 0; bottom: 0; }
+    h1 { font-size: 18px; color: #58a6ff; margin-bottom: 4px; }
+    .subtitle { font-size: 11px; color: #8b949e; margin-bottom: 20px; }
+    .section { margin-bottom: 16px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #21262d;
+    }
+    .radio-group, .checkbox-group { display: flex; flex-direction: column; gap: 2px; }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+      font-size: 13px;
+    }
+    label:hover { background: #161b22; }
+    label.disabled { opacity: 0.4; pointer-events: none; }
+    input[type="radio"], input[type="checkbox"] {
+      accent-color: #58a6ff;
+      width: 14px; height: 14px;
+      flex-shrink: 0;
+    }
+    .info-box {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.7;
+      font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    }
+    .info-box .val { color: #58a6ff; }
+    .shortcut-list { font-size: 12px; line-height: 2.2; }
+    .shortcut-list kbd {
+      background: #21262d;
+      border: 1px solid #30363d;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 10px;
+    }
+    #loading {
+      position: fixed;
+      top: 0; left: 300px; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(13, 17, 23, 0.92);
+      z-index: 100;
+      flex-direction: column;
+      gap: 16px;
+    }
+    #loading.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #21262d;
+      border-top-color: #58a6ff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-text { font-size: 14px; color: #8b949e; }
+    .color-row { display: flex; align-items: center; gap: 8px; padding: 4px 8px; font-size: 13px; }
+    .color-row input[type="color"] {
+      width: 28px; height: 22px;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .slider-row { padding: 4px 8px; font-size: 13px; }
+    .slider-row input[type="range"] { width: 100%; margin-top: 4px; accent-color: #58a6ff; }
+  </style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h1>网格模型编辑器</h1>
+  <div class="subtitle">Polygon Mesh Editor &mdash; Flower.ply</div>
+
+  <div class="section">
+    <div class="section-title">显示模式 Display Mode</div>
+    <div class="radio-group">
+      <label title="显示所有线框，不进行消隐处理">
+        <input type="radio" name="displayMode" value="wireframe-all" checked>
+        线框 · 非消隐
+      </label>
+      <label title="消隐处理，被遮挡的边和顶点不显示">
+        <input type="radio" name="displayMode" value="wireframe-hidden">
+        线框 · 消隐
+      </label>
+      <label title="面绘制模式，支持光照和明暗处理">
+        <input type="radio" name="displayMode" value="solid">
+        面绘制 (Surface)
+      </label>
+    </div>
+  </div>
+
+  <div class="section" id="sec-display">
+    <div class="section-title">显示选项</div>
+    <div class="checkbox-group">
+      <label><input type="checkbox" id="chkVertices"> 显示顶点 (Vertices)</label>
+      <label><input type="checkbox" id="chkEdges" checked> 显示边 (Edges)</label>
+    </div>
+  </div>
+
+  <div class="section hidden-in-wireframe" id="sec-lighting">
+    <div class="section-title">光照模型 Lighting</div>
+    <div class="checkbox-group">
+      <label><input type="checkbox" id="chkAmbient" checked> 环境光 (Ambient)</label>
+      <label><input type="checkbox" id="chkDiffuse" checked> 漫反射 Lambert (Diffuse)</label>
+      <label><input type="checkbox" id="chkSpecular"> 镜面反射 Phong (Specular)</label>
+    </div>
+    <div class="slider-row" style="margin-top:8px;">
+      光泽度 Shininess: <span id="shininessVal">32</span>
+      <input type="range" id="sliderShininess" min="1" max="128" value="32">
+    </div>
+  </div>
+
+  <div class="section hidden-in-wireframe" id="sec-shading">
+    <div class="section-title">明暗处理 Shading</div>
+    <div class="radio-group">
+      <label><input type="radio" name="shadingMode" value="gouraud"> Gouraud 明暗处理</label>
+      <label><input type="radio" name="shadingMode" value="phong" checked> Phong 明暗处理</label>
+    </div>
+  </div>
+
+  <div class="section" id="sec-color">
+    <div class="section-title">颜色设置 Colors</div>
+    <div class="color-row hidden-in-wireframe">
+      <input type="color" id="colBase" value="#cc7755"> 基础色 (Base)
+    </div>
+    <div class="color-row hidden-in-wireframe">
+      <input type="color" id="colSpecular" value="#ffffff"> 高光色 (Specular)
+    </div>
+    <div class="color-row">
+      <input type="color" id="colWire" value="#00cc88"> 线框色 (Wire)
+    </div>
+    <div class="color-row">
+      <input type="color" id="colPoint" value="#ff6666"> 顶点色 (Point)
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">模型信息 Model Info</div>
+    <div class="info-box" id="modelInfo">加载中 ...</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">操作说明 Controls</div>
+    <div class="shortcut-list">
+      <kbd>鼠标左键拖拽</kbd> 旋转模型<br>
+      <kbd>鼠标右键拖拽</kbd> 平移视角<br>
+      <kbd>滚轮</kbd> 缩放视野<br>
+      <kbd>1</kbd> 线框 · 非消隐<br>
+      <kbd>2</kbd> 线框 · 消隐<br>
+      <kbd>3</kbd> 面绘制<br>
+      <kbd>R</kbd> 重置视角
+    </div>
+  </div>
+</div>
+
+<div id="viewport"></div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loading-text">正在加载模型 Loading model …</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ================================================================
+   Scene, Camera, Renderer
+   ================================================================ */
+const viewport = document.getElementById('viewport');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+renderer.setClearColor(0x0d1117);
+viewport.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, viewport.clientWidth / viewport.clientHeight, 0.01, 200);
+camera.position.set(0, 0, 3);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.rotateSpeed = 0.8;
+
+const initialCamPos = camera.position.clone();
+const initialCamTarget = controls.target.clone();
+
+/* ================================================================
+   Light (world-space, transformed to view-space each frame)
+   ================================================================ */
+const lightWorldPos = new THREE.Vector3(5, 10, 7);
+
+/* ================================================================
+   GLSL Shaders
+   ================================================================ */
+
+// ---------- Gouraud : per-vertex lighting ----------
+const gouraudVS = /* glsl */ `
+  uniform vec3 uLightPos;
+  uniform vec3 uBaseColor;
+  uniform vec3 uSpecColor;
+  uniform float uShininess;
+  uniform float uUseAmbient;
+  uniform float uUseDiffuse;
+  uniform float uUseSpecular;
+  uniform float uAmbientStr;
+  varying vec3 vColor;
+
+  void main() {
+    vec3 mvPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    vec3 N = normalize(normalMatrix * normal);
+    vec3 L = normalize(uLightPos - mvPos);
+    vec3 V = normalize(-mvPos);
+
+    vec3 c = vec3(0.0);
+    c += uBaseColor * uAmbientStr * uUseAmbient;
+
+    float diff = max(dot(N, L), 0.0);
+    c += uBaseColor * diff * uUseDiffuse;
+
+    vec3 R = reflect(-L, N);
+    float spec = pow(max(dot(V, R), 0.0), uShininess);
+    c += uSpecColor * spec * uUseSpecular;
+
+    vColor = clamp(c, 0.0, 1.0);
+    gl_Position = projectionMatrix * vec4(mvPos, 1.0);
+  }
+`;
+
+const gouraudFS = /* glsl */ `
+  varying vec3 vColor;
+  void main() {
+    gl_FragColor = vec4(vColor, 1.0);
+  }
+`;
+
+// ---------- Phong : per-fragment lighting ----------
+const phongVS = /* glsl */ `
+  varying vec3 vNormal;
+  varying vec3 vViewPos;
+
+  void main() {
+    vec3 mvPos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+    vNormal = normalMatrix * normal;
+    vViewPos = mvPos;
+    gl_Position = projectionMatrix * vec4(mvPos, 1.0);
+  }
+`;
+
+const phongFS = /* glsl */ `
+  uniform vec3 uLightPos;
+  uniform vec3 uBaseColor;
+  uniform vec3 uSpecColor;
+  uniform float uShininess;
+  uniform float uUseAmbient;
+  uniform float uUseDiffuse;
+  uniform float uUseSpecular;
+  uniform float uAmbientStr;
+  varying vec3 vNormal;
+  varying vec3 vViewPos;
+
+  void main() {
+    vec3 N = normalize(vNormal);
+    vec3 L = normalize(uLightPos - vViewPos);
+    vec3 V = normalize(-vViewPos);
+
+    vec3 c = vec3(0.0);
+    c += uBaseColor * uAmbientStr * uUseAmbient;
+
+    float diff = max(dot(N, L), 0.0);
+    c += uBaseColor * diff * uUseDiffuse;
+
+    vec3 R = reflect(-L, N);
+    float spec = pow(max(dot(V, R), 0.0), uShininess);
+    c += uSpecColor * spec * uUseSpecular;
+
+    gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
+  }
+`;
+
+/* ================================================================
+   Shared uniforms (referenced by both materials)
+   ================================================================ */
+function makeUniforms() {
+  return {
+    uLightPos:    { value: new THREE.Vector3() },
+    uBaseColor:   { value: new THREE.Color(0xcc7755) },
+    uSpecColor:   { value: new THREE.Color(0xffffff) },
+    uShininess:   { value: 32.0 },
+    uUseAmbient:  { value: 1.0 },
+    uUseDiffuse:  { value: 1.0 },
+    uUseSpecular: { value: 0.0 },
+    uAmbientStr:  { value: 0.15 },
+  };
+}
+
+const gouraudMat = new THREE.ShaderMaterial({
+  uniforms: makeUniforms(),
+  vertexShader: gouraudVS,
+  fragmentShader: gouraudFS,
+  side: THREE.DoubleSide,
+});
+
+const phongMat = new THREE.ShaderMaterial({
+  uniforms: makeUniforms(),
+  vertexShader: phongVS,
+  fragmentShader: phongFS,
+  side: THREE.DoubleSide,
+});
+
+const allShaderMats = [gouraudMat, phongMat];
+
+/* ================================================================
+   Scene objects (populated after PLY loads)
+   ================================================================ */
+let pointsObj, wireObj, solidMesh, occlusionMesh;
+let baseGeometry;
+
+/* ================================================================
+   State
+   ================================================================ */
+const S = {
+  mode: 'wireframe-all',
+  showVerts: false,
+  showEdges: true,
+  ambient: true,
+  diffuse: true,
+  specular: false,
+  shading: 'phong',
+  shininess: 32,
+  baseColor: new THREE.Color(0xcc7755),
+  specColor: new THREE.Color(0xffffff),
+  wireColor: new THREE.Color(0x00cc88),
+};
+
+/* ================================================================
+   Build scene objects from geometry
+   ================================================================ */
+function buildScene(geometry) {
+  baseGeometry = geometry;
+  geometry.computeVertexNormals();
+
+  geometry.computeBoundingBox();
+  const center = new THREE.Vector3();
+  geometry.boundingBox.getCenter(center);
+  geometry.translate(-center.x, -center.y, -center.z);
+
+  geometry.computeBoundingBox();
+  const size = new THREE.Vector3();
+  geometry.boundingBox.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  if (maxDim > 0) {
+    const s = 2.0 / maxDim;
+    geometry.scale(s, s, s);
+  }
+
+  // Points
+  const ptMat = new THREE.PointsMaterial({ color: 0xff6666, size: 2, sizeAttenuation: false });
+  pointsObj = new THREE.Points(geometry, ptMat);
+  scene.add(pointsObj);
+
+  // Wireframe
+  const wireGeo = new THREE.WireframeGeometry(geometry);
+  const wireMat = new THREE.LineBasicMaterial({ color: S.wireColor });
+  wireObj = new THREE.LineSegments(wireGeo, wireMat);
+  scene.add(wireObj);
+
+  // Solid mesh (Gouraud / Phong shader)
+  solidMesh = new THREE.Mesh(geometry, phongMat);
+  solidMesh.renderOrder = 0;
+  scene.add(solidMesh);
+
+  // Occlusion mesh for hidden-line wireframe mode
+  const occMat = new THREE.MeshBasicMaterial({
+    color: 0x0d1117,
+    side: THREE.DoubleSide,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+  });
+  occlusionMesh = new THREE.Mesh(geometry, occMat);
+  occlusionMesh.renderOrder = -1;
+  scene.add(occlusionMesh);
+
+  const nV = geometry.attributes.position.count;
+  const nF = geometry.index ? geometry.index.count / 3 : nV / 3;
+  document.getElementById('modelInfo').innerHTML =
+    `顶点 Vertices: <span class="val">${nV.toLocaleString()}</span><br>` +
+    `面片 Faces: <span class="val">${Math.round(nF).toLocaleString()}</span><br>` +
+    `文件 File: <span class="val">Flower.ply</span>`;
+
+  updateScene();
+}
+
+/* ================================================================
+   Update visibility / materials based on state
+   ================================================================ */
+function updateScene() {
+  if (!pointsObj) return;
+
+  const isWF = S.mode.startsWith('wireframe');
+  const isSolid = S.mode === 'solid';
+  const noHide = S.mode === 'wireframe-all';
+
+  // Points
+  pointsObj.visible = S.showVerts;
+  pointsObj.material.depthTest = !noHide;
+  pointsObj.material.depthWrite = !noHide;
+  pointsObj.renderOrder = isSolid ? 3 : 2;
+
+  // Wireframe
+  wireObj.visible = S.showEdges || isWF;
+  wireObj.material.depthTest = !noHide;
+  wireObj.material.depthWrite = !noHide;
+  wireObj.material.color.copy(S.wireColor);
+  if (isSolid) {
+    wireObj.renderOrder = 2;
+    wireObj.material.depthTest = true;
+    wireObj.material.depthWrite = true;
+  } else {
+    wireObj.renderOrder = 1;
+  }
+
+  // Occlusion mesh (only for hidden-line wireframe mode)
+  occlusionMesh.visible = S.mode === 'wireframe-hidden';
+
+  // Solid mesh
+  solidMesh.visible = isSolid;
+  if (isSolid) {
+    solidMesh.material = S.shading === 'gouraud' ? gouraudMat : phongMat;
+    solidMesh.material.polygonOffset = true;
+    solidMesh.material.polygonOffsetFactor = 1;
+    solidMesh.material.polygonOffsetUnits = 1;
+  }
+
+  // Sync uniforms
+  allShaderMats.forEach(m => {
+    const u = m.uniforms;
+    u.uBaseColor.value.copy(S.baseColor);
+    u.uSpecColor.value.copy(S.specColor);
+    u.uShininess.value = S.shininess;
+    u.uUseAmbient.value = S.ambient ? 1.0 : 0.0;
+    u.uUseDiffuse.value = S.diffuse ? 1.0 : 0.0;
+    u.uUseSpecular.value = S.specular ? 1.0 : 0.0;
+  });
+
+  // UI panel visibility: hide lighting/shading/color sections in wireframe modes
+  document.querySelectorAll('.hidden-in-wireframe').forEach(el => {
+    el.style.display = isSolid ? '' : 'none';
+  });
+}
+
+/* ================================================================
+   Load PLY
+   ================================================================ */
+const loader = new PLYLoader();
+loader.load(
+  'Flower.ply',
+  (geometry) => {
+    document.getElementById('loading').classList.add('hidden');
+    buildScene(geometry);
+  },
+  (xhr) => {
+    if (xhr.total) {
+      const pct = Math.round(xhr.loaded / xhr.total * 100);
+      document.getElementById('loading-text').textContent =
+        `正在加载模型 ${pct}% (${(xhr.loaded / 1048576).toFixed(1)} MB)`;
+    }
+  },
+  (err) => {
+    document.getElementById('loading-text').textContent =
+      '加载失败。请通过 HTTP 服务器打开此页面（见 README）';
+    console.error(err);
+  }
+);
+
+/* ================================================================
+   UI Bindings
+   ================================================================ */
+document.querySelectorAll('input[name="displayMode"]').forEach(el => {
+  el.addEventListener('change', () => { S.mode = el.value; updateScene(); });
+});
+document.getElementById('chkVertices').addEventListener('change', e => {
+  S.showVerts = e.target.checked; updateScene();
+});
+document.getElementById('chkEdges').addEventListener('change', e => {
+  S.showEdges = e.target.checked; updateScene();
+});
+document.getElementById('chkAmbient').addEventListener('change', e => {
+  S.ambient = e.target.checked; updateScene();
+});
+document.getElementById('chkDiffuse').addEventListener('change', e => {
+  S.diffuse = e.target.checked; updateScene();
+});
+document.getElementById('chkSpecular').addEventListener('change', e => {
+  S.specular = e.target.checked; updateScene();
+});
+document.querySelectorAll('input[name="shadingMode"]').forEach(el => {
+  el.addEventListener('change', () => { S.shading = el.value; updateScene(); });
+});
+document.getElementById('sliderShininess').addEventListener('input', e => {
+  S.shininess = parseFloat(e.target.value);
+  document.getElementById('shininessVal').textContent = S.shininess;
+  updateScene();
+});
+document.getElementById('colBase').addEventListener('input', e => {
+  S.baseColor.set(e.target.value); updateScene();
+});
+document.getElementById('colSpecular').addEventListener('input', e => {
+  S.specColor.set(e.target.value); updateScene();
+});
+document.getElementById('colWire').addEventListener('input', e => {
+  S.wireColor.set(e.target.value); updateScene();
+});
+document.getElementById('colPoint').addEventListener('input', e => {
+  S.pointColor = e.target.value;
+  if (pointsObj) { pointsObj.material.color.set(e.target.value); }
+});
+
+/* ================================================================
+   Keyboard Shortcuts
+   ================================================================ */
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const key = e.key.toLowerCase();
+  if (key === '1') setMode('wireframe-all');
+  else if (key === '2') setMode('wireframe-hidden');
+  else if (key === '3') setMode('solid');
+  else if (key === 'r') resetCamera();
+});
+
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelector(`input[name="displayMode"][value="${mode}"]`).checked = true;
+  updateScene();
+}
+
+function resetCamera() {
+  camera.position.copy(initialCamPos);
+  controls.target.copy(initialCamTarget);
+  controls.update();
+}
+
+/* ================================================================
+   Resize
+   ================================================================ */
+window.addEventListener('resize', () => {
+  const w = viewport.clientWidth;
+  const h = viewport.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+/* ================================================================
+   Render Loop
+   ================================================================ */
+const _lightView = new THREE.Vector3();
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+
+  // Transform light to view space for shaders
+  _lightView.copy(lightWorldPos).applyMatrix4(camera.matrixWorldInverse);
+  allShaderMats.forEach(m => { m.uniforms.uLightPos.value.copy(_lightView); });
+
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
