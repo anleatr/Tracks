@@ -29,7 +29,7 @@
 ### CLIPScore: A Reference-free Evaluation Metric for Image Captioning (https://arxiv.org/abs/2104.08718)
 - 评价方法：计算描述文本向量和图像向量的余弦相似度， 称为CLIPScore
 - 可以直接使用作为评价指标，但是CLIP文本编码器上限为77个token，不能用来评测太长句子，并且主要用来评价整体图文一致性而不是完善性
-- 或许修改一些是符合要求的简单方案？
+- 或许修改一些,使文本编码器能接收长文本是符合要求的简单方案？
 ### An Online Reference-Free Evaluation Framework for Flowchart Image-to-Code Generation（https://arxiv.org/abs/2602.13376）
 主要用来评估流程图描述质量
 - 评价方法：分为召回评估和幻觉检测两部分
