@@ -1,4 +1,24 @@
-功能说明
+## 使用说明
+
+### 系统要求
+
+操作系统：linux / windows
+
+python3
+
+### 运行
+
+- linux:在项目目录下运行
+
+```
+chmod +x run_linux.sh
+./run_linux.sh
+```
+
+- windows:双击run_windows.bat
+
+## 功能说明
+
 本编辑器实现了以下全部要求：
 (1) 线框 · 非消隐 — 顶点与边的非消隐显示
 关闭深度测试，所有边和顶点均可见（包括被遮挡部分）
