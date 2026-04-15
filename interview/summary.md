@@ -35,3 +35,5 @@ python
 self.W = torch.rand(...)
 
 torch.rand 是 0~1 均匀分布，非常容易梯度爆炸。深度学习都用 正态分布小随机数。
+
+### 优化器
