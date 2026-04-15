@@ -1,0 +1,11 @@
+asdfa
+asdgfasdgasdfg  gsad gf: fgasd fgasd
+
+asdg weeqtf w
+
+sadf 
+we ftrweat szdf
+agsa sd
+
+什么时候required_grad会掉，哪些变量需要设为True，权重需要设为True，结果需不需要？loss需不需要？
+回答第一个问题，要保持每个参数能正常计算梯度，必须保证计算链不会断开
