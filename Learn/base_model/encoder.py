@@ -106,11 +106,10 @@ class LayerNormalization(nn.Module):
         """
 
 class EncoderBlock(nn.Module):
-    def __init__(self, test_data, num_heads=4, num_block=6):
+    def __init__(self, seq_len, d_model, num_heads=4, num_block=6):
         super().__init__()
         # 输入x, 输出相同shape的x
         self.num_block = num_block
-        batch, seq_len, d_model = test_data.shape
 
         self.attention = MultiHeadAttentionLayer(d_model, num_heads=num_heads)
         self.feedforward = FeedForwardLayer(d_model)
@@ -128,16 +127,20 @@ class EncoderBlock(nn.Module):
         return x2
         
 class Encoder(nn.Module):
-    def __init__(self, test_data, num_heads=4, num_block=6):
+    def __init__(self, seq_len, d_model, num_heads=4, num_block=6):
         super().__init__()
 
         self.num_block = num_block
-        batch, seq_len, d_model = test_data.shape
+
 
         self.pos_emb = PositionEmbeddingLayer(seq_len, d_model)
 
         # 不能用列表，否则追踪不到这些层
-        self.model = nn.ModuleList([EncoderBlock(test_data, num_heads=num_heads, num_block=num_block) for _ in range(num_block)])
+        self.model = nn.ModuleList([
+            EncoderBlock(seq_len=seq_len, d_model=d_model, num_heads=num_heads, num_block=num_block) 
+            for _ in range(num_block)
+        ])
+        
     def forward(self, x:torch.tensor):
         x = self.pos_emb(x)
 
