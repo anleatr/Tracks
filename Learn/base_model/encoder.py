@@ -154,11 +154,11 @@ if __name__ == "__main__":
     # x = x.to(device)
     # encoder = encoder.to(device)
 
-    import time
-    start = time.time()
-    for _ in range(1000):
-        y = encoder(x)
-    print(f"cpu use:{time.time() - start}") # 4.0
+    # import time
+    # start = time.time()
+    # for _ in range(1000):
+    #     y = encoder(x)
+    # print(f"cpu use:{time.time() - start}") # 4.0
     # print(f"gpu use:{time.time() - start}") # 0.945 0.91
     # print(x.shape)
     # print(y.shape)
@@ -168,3 +168,5 @@ if __name__ == "__main__":
     # 第一个问题，使用nn.Parameter, 这样才会随模型移动，并且model.parameter和stact_dict{}才会包含这个参数，
     # 第二个问题，向量化操作
     # 第三个问题，position_embedding的参数不需要梯度，但是也需要移动到gpu上，
+
+    print(dir(encoder))
