@@ -26,8 +26,8 @@ HYPERALIGN_MODEL_CLASS_MAP = HYPERLM_MODEL_CLASS_MAP
 def get_hyperlm_model_class(model_name_or_path: str):
     """Pick the correct Hyper-Align/HyperLM wrapper class based on config.json model_type."""
     from transformers import AutoConfig
-    cfg = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
-    model_type = getattr(cfg, "model_type", "llama")
+    cfg = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True) # 返回对应模型的专属配置
+    model_type = getattr(cfg, "model_type", "llama") # 默认llama
     cls = HYPERLM_MODEL_CLASS_MAP.get(model_type)
     if cls is None:
         raise ValueError(

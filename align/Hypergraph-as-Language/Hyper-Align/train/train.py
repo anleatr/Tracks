@@ -693,7 +693,7 @@ def _train():
             return
         print(f"{training_args.output_dir} already exists!!!!")
 
-    from utils.hypergraph_features import infer_semantic_dim
+    from utils.hypergraph_features import infer_semantic_dim # 语义向量维度
     semantic_dim = infer_semantic_dim(
         hyper_data_root=data_args.hyper_data_root,
         pretrained_embedding_type=data_args.pretrained_embedding_type,
@@ -706,6 +706,7 @@ def _train():
     print(f"Inferred semantic_dim={semantic_dim} from embedding files")
     print(f"mm_hidden_size: {model_args.mm_hidden_size}")
 
+    # 4bit/8bit训练
     bnb_model_from_pretrained_args = {}
     if training_args.bits in [4, 8]:
         from transformers import BitsAndBytesConfig
@@ -725,8 +726,9 @@ def _train():
         ))
 
 
+    # 加载模型
     from model import get_hyperalign_model_class
-    model_cls = get_hyperalign_model_class(model_args.model_name_or_path)
+    model_cls = get_hyperalign_model_class(model_args.model_name_or_path) # HyperLMLlamaForCausalLM 或者 HyperLMQwen3ForCausalLM
     extra_from_pretrained_kwargs = {}
     base_config = transformers.AutoConfig.from_pretrained(
         model_args.model_name_or_path, trust_remote_code=True
@@ -741,7 +743,7 @@ def _train():
         **bnb_model_from_pretrained_args,
     )
 
-    model.config.use_cache = False
+    model.config.use_cache = False # 训练阶段关闭KV cache
 
     if training_args.bits in [4, 8]:
         from peft import prepare_model_for_kbit_training
@@ -855,6 +857,7 @@ def _train():
                     if training_args.bf16 and module.weight.dtype == torch.float32:
                         module = module.to(torch.bfloat16)
 
+    # 数据
     data_module = make_supervised_data_module(tokenizer=tokenizer,
                                               data_args=data_args)
     trainer = HyperLMTrainer(model=model,
@@ -870,6 +873,7 @@ def _train():
 
     model.config.use_cache = True
 
+    # 保存逻辑
     if training_args.lora_enable:
         state_dict = get_peft_state_maybe_zero_3(
             model.named_parameters(), training_args.lora_bias

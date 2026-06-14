@@ -65,22 +65,23 @@ class HyperLMQwen3ForCausalLM(Qwen3ForCausalLM, HyperLMMetaForCausalLM):
 
     def forward(
         self,
-        input_ids: torch.LongTensor = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[List[torch.FloatTensor]] = None,
-        inputs_embeds: Optional[torch.FloatTensor] = None,
-        labels: Optional[torch.LongTensor] = None,
-        use_cache: Optional[bool] = None,
-        output_attentions: Optional[bool] = None,
-        output_hidden_states: Optional[bool] = None,
-        graph: Optional[torch.FloatTensor] = None,
-        graph_emb: Optional[torch.FloatTensor] = None,
-        graph_aux: Optional[dict] = None,
-        return_dict: Optional[bool] = None,
-        cache_position: Optional[torch.LongTensor] = None,
-        **kwargs,
+        input_ids: torch.LongTensor = None,  # Qwen3 native: token ids for the text prompt.
+        attention_mask: Optional[torch.Tensor] = None,  # Qwen3 native: mask for valid tokens vs padding.
+        position_ids: Optional[torch.LongTensor] = None,  # Qwen3 native: explicit position indices.
+        past_key_values: Optional[List[torch.FloatTensor]] = None,  # Qwen3 native: KV cache for generation.
+        inputs_embeds: Optional[torch.FloatTensor] = None,  # Qwen3 native: precomputed token embeddings.
+        labels: Optional[torch.LongTensor] = None,  # Qwen3 native: causal-LM training labels.
+        use_cache: Optional[bool] = None,  # Qwen3 native: whether to return/use KV cache.
+        output_attentions: Optional[bool] = None,  # Qwen3 native: whether to return attention maps.
+        output_hidden_states: Optional[bool] = None,  # Qwen3 native: whether to return all hidden states.
+        graph: Optional[torch.FloatTensor] = None,  # HyperLMQwen3 specific: graph token layout/padding ids.
+        graph_emb: Optional[torch.FloatTensor] = None,  # HyperLMQwen3 specific: raw hypergraph features.
+        graph_aux: Optional[dict] = None,  # HyperLMQwen3 specific: auxiliary metadata for projector losses.
+        return_dict: Optional[bool] = None,  # Qwen3 native: whether to return a ModelOutput object.
+        cache_position: Optional[torch.LongTensor] = None,  # Qwen3 native: cache positions for generation.
+        **kwargs,  # Qwen3/Transformers compatibility: extra forward arguments.
     ) -> Union[Tuple, CausalLMOutputWithPast]:
+        
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -98,7 +99,7 @@ class HyperLMQwen3ForCausalLM(Qwen3ForCausalLM, HyperLMMetaForCausalLM):
                 graph_aux=graph_aux,
                 return_projector_aux=True,
             )
-        )
+        ) # 把文本中的graph占位token替换为projector输出的hypergraph embeddings
 
         outputs = self.model(
             input_ids=input_ids,
@@ -111,13 +112,14 @@ class HyperLMQwen3ForCausalLM(Qwen3ForCausalLM, HyperLMMetaForCausalLM):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             cache_position=cache_position,
-        )
+        ) # 正常qwen3 forward
 
         hidden_states = outputs[0]
 
         loss = None
         logits = None
 
+        # loss计算两条路径
         if labels is not None and _LIGER_FLCE_CLS is not None:
             # The fused CE path avoids materializing the full (B, L, V) logits tensor.
             shift_hidden = hidden_states[..., :-1, :].contiguous()
@@ -139,7 +141,7 @@ class HyperLMQwen3ForCausalLM(Qwen3ForCausalLM, HyperLMMetaForCausalLM):
             logits = self.lm_head(hidden_states)
 
         if loss is not None:
-            aux_loss, aux_logs = self.compute_projector_aux_loss(projector_output, graph_aux)
+            aux_loss, aux_logs = self.compute_projector_aux_loss(projector_output, graph_aux) # 额外损失
             if aux_loss is not None:
                 loss = loss + aux_loss.to(loss.device)
                 self.latest_aux_logs = {key: value.detach().float().cpu() for key, value in aux_logs.items()}
