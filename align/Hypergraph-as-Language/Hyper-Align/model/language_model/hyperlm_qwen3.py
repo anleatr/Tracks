@@ -49,6 +49,7 @@ class HyperLMQwen3Model(HyperLMMetaModel, Qwen3Model):
         super(HyperLMQwen3Model, self).__init__(config)
 
 
+# 在Qwen3基础上，改了数据输入和输出头
 class HyperLMQwen3ForCausalLM(Qwen3ForCausalLM, HyperLMMetaForCausalLM):
     config_class = HyperLMQwen3Config
 

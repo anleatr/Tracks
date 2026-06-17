@@ -1,0 +1,876 @@
+\documentclass[10pt]{article}
+\usepackage[verbose, a4paper, hmargin=2.5cm, vmargin=2.5cm]{geometry}
+
+\usepackage{fontspec}
+\usepackage{ctex}
+\usepackage{paratype}
+
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{esint}
+
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{mdframed}
+\usepackage{booktabs,array,multirow}
+\usepackage{adjustbox}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan,}
+\urlstyle{same}
+\usepackage[most]{tcolorbox}
+\definecolor{mygray}{RGB}{240,240,240}
+\tcbset{
+  colback=mygray,
+  boxrule=0pt,
+}
+\graphicspath{ {./images/} }
+\newcommand{\HRule}{\begin{center}\rule{0.9\linewidth}{0.2mm}\end{center}}
+\newcommand{\customfootnote}[1]{
+  \let\thefootnote\relax\footnotetext{#1}
+}
+
+\begin{document}
+\vspace*{1em}
+\noindent\hfill\rule{0.86\linewidth}{0.2mm}\hfill
+
+\begin{center}
+{\LARGE\bfseries 超图作为语言\par}
+\vspace{1.5em}
+孟琦 雷 \({}^{1,2}\)，国欢 谢 \({}^{1,2}\)，世辉 应 \({}^{3}\)，少毅 杜 \({}^{4}\)，俊海 雍 \({}^{1}\)，思琦 \({\mathrm{{Li}}}^{1,2}\)，以及 悦 高 \({}^{1,2}\)\par
+
+\({}^{1}\) \{北京国家研究中心信息科学与技术分部，清华信息科学与技术国家实验室（筹），大数据与认知计算实验室，软件学院\}，清华大学\par
+
+清华大学长三角研究院\par
+
+\({}^{3}\) 上海大学上海市应用数学和力学研究所\par
+
+\({}^{4}\) 人机混合增强智能全国重点实验室，\par
+
+国家视觉信息与应用工程研究中心，\par
+
+及西安交通大学人工智能与机器人研究所\par
+
+leimq25@mails.tsinghua.edu.cn, stuxiemol@gmail.com, shying@shu.edu.cn\par
+
+dushaoyi@xjtu.edu.cn, yongjh@tsinghua.edu.cn, lisiqi19971013@gmail.com\par
+
+kevin.gaoy@gmail.com\par
+\end{center}
+
+\begin{center}
+{\Large\bfseries 摘要\par}
+\end{center}
+
+大型语言模型（LLMs）近期在关系结构建模方面展现出巨大潜力。然而，现有方法本质上仍以图为中心：它们主要关注将成对图结构处理为LLMs可理解的token。相比之下，许多现实世界的关系模式并不天然符合成对边的假设，而更适合建模为超图中的高阶关联。面对超图结构时，现有方法往往无法保留多个对象通过同一高阶关系共同连接的原生语义，从而限制了其有效利用复杂结构的能力。为突破这一局限，我们提出“超图即语言”的视角，并设计了Hyper-Align——一个面向大型语言模型的超图原生对齐框架。Hyper-Align将以查询对象为中心的超图上下文编译为超图token序列，可直接供基础LLM使用。具体而言，我们首先引入带概览的超图关联细节模板（HIDT-O），将高阶关联结构序列化为结合局部关联细节与概览级摘要的固定形状混合模板。随后，我们设计了超图关联投影器（HIP），通过显式的语义-结构解耦以及顶点与超边之间的双向消息传递，将原生高阶关联结构映射到LLM的token空间。在此基础上，我们进一步定义了具体的“超图即语言”输入协议，将超图token与文本提示联合输入冻结的基础LLM，从而在统一的问答范式下同时支持顶点级和超边级任务。此外，为系统评估不同方法在超图结构建模中的能力，我们引入了HyperAlign-Bench基准。大量实验表明，我们的Hyper-Align在域内和零样本评估中均显著优于现有方法。代码开源地址：https://github.com/Mengqi-Lei/Hypergraph-as-Language
+
+\section*{1 引言}
+
+大型语言模型（LLMs）在语言理解、知识迁移和统一任务建模方面展现出强大能力，这进一步加速了其向结构化数据领域的扩展[1, 2, 3, 4]。近年来，基于LLM的图结构数据研究逐渐成为活跃的研究课题，主要遵循两种范式[5, 6, 7]。一类方法将图结构重写为自然语言或代码风格的描述[8, 9, 10, 11]，使LLM能够直接在文本空间中执行图任务。另一类方法将图结构转换为与LLM输入空间兼容的图令牌序列，使用冻结或近乎冻结的LLM作为统一接口，用于各种任务甚至零样本推理[12, 13, 14, 15]。尽管这些方法显著推动了LLM与图学习的融合，但其建模假设本质上仍以图为中心：基本结构单元通常是成对邻接关系、节点邻域或从图派生的令牌序列。
+
+然而，现实世界中的许多高阶关系并不天然符合普通图的成对边假设[16, 17, 18, 19]。诸如论文共引、群体交互和多实体协作等数据更适合建模为超图，其中一条超边可以同时连接任意数量的顶点。相应地，语义焦点不再局限于两个顶点是否相连，而在于一组对象如何作为一个整体被关联。这意味着超图的天然结构单元并非成对邻接关系，而是建立在顶点与超边之间的高阶关联[20, 21]。就此而言，直接应用现有的以图为中心的方法需要将超图展开为多条成对边（例如通过团展开），这不可避免地会丢失原始超图中的高阶关联信息[22, 23]。
+
+\begin{center}
+\includegraphics[max width=0.4\textwidth]{images/019eb6e5-4366-7e57-a3a7-f7fc12c7791f_1_906_470_569_407_0.jpg}
+\end{center}
+\hspace*{3em} 
+
+Figure 1: Illustration of our method.
+
+近期，将超图与大型语言模型相结合的若干初步探索已陆续出现。LLMHG [24]、HeLLM [25] 和 Hyper-RAG [26] 分别聚焦于推荐系统、多模态推荐和检索增强生成（RAG）场景，而 HyperLLM [27] 则专注于利用大语言模型从文本数据中生成超图。LLM4Hypergraph [28] 构建了一个系统性的超图理解基准，旨在探索将超图转换为自然语言，以便大型模型能够理解它们。我们将这种较为直观的范式称为“超图到语言”，但它可能导致信息丢失。尽管已有这些努力，一个根本性问题在很大程度上仍未被探索：我们能否让大语言模型直接将超图作为一种类语言的结构化输入来理解，从而使大语言模型能够原生地建模高阶关联并统一处理超图任务？我们将这一新的研究方向称为“超图即语言”，如图 1 所示。
+
+基于超图作为语言视图的理念，我们提出了Hyper-Align，这是首个面向大语言模型的超图原生对齐框架。Hyper-Align将围绕查询对象的高阶关联结构编译为连续的“超图令牌”序列，可直接被基础大语言模型消费，并在统一的问答范式下进行推理。具体而言，我们首先提出了一种超图原生序列化方法——带概述的超图关联细节模板（HIDT-O）。该方法从顶点-超边关联的视角出发，将高阶关联结构序列化为一个固定形状的模板，该模板包含局部关联细节和概述级摘要。其次，在表征对齐层面，我们设计了超图关联投影器（HIP）。与现有图-大语言模型方法中常用的共享MLP式投影器不同，我们的HIP显式解耦语义与结构，区分顶点、超边和概述组件等不同角色。此外，它在投影器内部执行顶点与超边之间的高阶双向消息传递，从而将原生高阶关联结构映射到大语言模型的令牌空间。在此基础上，我们进一步定义了一个具体的“超图即语言”输入协议，该协议使用由背景-细节-问题三部分构成的提示，将超图令牌和文本上下文联合输入到冻结的基础大语言模型中。最后，在超图对齐调优阶段，我们设计了两个辅助监督任务，即阶次桶重建和关系重建，以联合主任务损失共同优化HIP的参数。值得注意的是，Hyper-Align不仅限于超图，还可自然扩展到普通图，因为普通图可被视为每个超边恰好关联两个顶点的特殊超图。为系统评估不同方法在高阶关联建模中的能力，我们进一步构建了HyperAlign-Bench基准，该基准包含顶点分类和超边分类两个核心任务，并支持域内和零样本评估。
+
+综上所述，本文的贡献可归纳如下。
+
+\begin{itemize}
+\item 我们引入“超图即语言”的视角，并提出Hyper-Align——首个面向大语言模型的超图原生对齐框架。
+\end{itemize}
+
+\begin{itemize}
+\item 我们提出HIDT-O，该方法从顶点-超边关联的视角，将高阶关联结构序列化为一种融合局部细节与概览级摘要的混合模板。
+\end{itemize}
+
+\begin{itemize}
+\item 我们提出HIP并定义了一种具体的超图即语言输入协议，在高阶关联结构、文本上下文与大语言模型之间建立了统一的对齐接口。同时，我们在超图对齐微调中设计了辅助监督机制，以联合优化HIP参数。
+\end{itemize}
+
+\begin{itemize}
+\item 我们构建了HyperAlign-Bench，一个用于高阶关联建模的公平且可复现的基准。大量实验表明，Hyper-Align在域内评估和零样本评估中均显著优于现有方法，验证了所提方法的必要性和有效性。
+\end{itemize}
+
+\section*{2 相关工作}
+
+现有关于结构化数据的LLM研究主要遵循两条路径：一是“图即文本”方法，将图重写为自然语言或代码风格的描述[8, 9, 10, 11]；二是“图到令牌”方法，将图结构映射为与LLM输入兼容的连续令牌[12, 13, 29, 30]。GraphGPT[12]、LLaGA[13]、TEA-GLM[14]和PromptGFM[15]等方法已展现出结构-语言对齐的潜力，但它们本质上构建于具有成对边的普通图之上。这使得它们难以处理高阶关联，因为这类关联的语义存在于同一超边内多个顶点的整体分组中。与此同时，HGNN[20]、Hyper-SAGNN[31]和AllSet[22]等超图学习方法直接对超图结构进行建模，而HyperBERT[32]等近期工作以及初步的超图-LLM研究[27, 25, 24, 26]则探索了文本超图、提示、推荐、检索增强或超图提取。然而，这些方法要么依赖特定任务的HGNN编码器，要么聚焦于特定场景，而非建立超图与LLM之间的统一对齐框架。我们的Hyper-Align通过将超图转化为LLM可直接使用的类语言结构输入，填补了这一空白，从而为顶点级和超边级任务实现了原生超图建模。
+
+\section*{3 超对齐框架}
+
+\section*{3.1 方法概述}
+
+问题形式化。给定一个超图，我们将其表示为：\(\mathcal{H} = \left( {\mathcal{V},\mathcal{E},\mathcal{X},\mathcal{Z}}\right)\)，其中\(\mathcal{V}\)表示顶点集合，\(\mathcal{E} = \left\{  {{e}_{1},\ldots ,{e}_{M}}\right\}\)表示超边集合，每条超边\({e}_{i} \subseteq  \mathcal{V}\)是顶点的子集，可包含任意数量的顶点。这里，\(\mathcal{X} = \left\{  {{x}_{v} \mid  v \in  \mathcal{V}}\right\}\)表示顶点的文本属性，而\(\mathcal{Z} = \left\{  {{z}_{e} \mid  e \in  \mathcal{E}}\right\}\)表示与超边相关的可选文本属性或元数据。我们分别定义顶点度和超边度为：\(d\left( v\right)  = \left| {\{ e \in  \mathcal{E} \mid  v \in  e\} }\right| ,\;r\left( e\right)  = \left| e\right|\)，其中\(r\left( e\right)\)在第3.2节的阶桶表示法中也用作超边阶。我们进一步定义关联矩阵为：\(B \in  \{ 0,1{\} }^{\left| \mathcal{V}\right|  \times  \left| \mathcal{E}\right| }\)，其中每个条目\({B}_{v,e}\)指示顶点\(v\)是否包含在超边\(e\)中：若\(v \in  e\)则\({B}_{v,e} = 1\)，否则\({B}_{v,e} = 0\)。Hyper-Align采用统一的以对象为中心的接口。给定一个查询中心\(c \in  \mathcal{V} \cup  \mathcal{E}\)，模型的目标是将以\(c\)为中心的高阶关系上下文映射为连续的token序列，使其可直接被LLM使用，进而在统一的问答范式下使冻结的LLM执行下游预测任务。值得注意的是，当所有超边满足\(r\left( e\right)  = 2\)时，该形式化自然退化为普通图设定。
+
+Hyper-Align 的整体框架。如图 2 所示，对于任意中心对象 \(c\)，Hyper-Align 的整体计算流程可表述为：
+
+\[
+c\xrightarrow[]{\text{ HIDT-O } \rightarrow  }\Pi \left( c\right)  = \left( {{u}_{1},\ldots ,{u}_{L}}\right) \xrightarrow[]{{\mathrm{{HIP}}}_{\phi }}T\left( c\right)  \in  {\mathbb{R}}^{{L}_{\mathcal{H}} \times  {d}_{\text{ llm }}{\text{ LLM }}_{\Theta }}y, \tag{1}
+\]
+
+其中，\(\Pi \left( c\right)\) 是由超图原生序列化模板生成的固定长度结构序列，\({\mathrm{{HIP}}}_{\phi }\) 表示所提出的超图关联投影器（HIP），\(T\left( c\right)\) 是长度为 \({L}_{\mathcal{H}}\) 的超图令牌序列，其维度与骨干大语言模型的隐藏空间相同，\({\mathrm{{LLM}}}_{\Theta }\) 表示一个冻结的大语言模型。整体框架由三个部分组成
+
+\begin{center}
+\includegraphics[max width=0.9\textwidth]{images/019eb6e5-4366-7e57-a3a7-f7fc12c7791f_3_313_204_1169_632_0.jpg}
+\end{center}
+\hspace*{3em} 
+
+图2：所提出的Hyper-Align整体框架。图中，"OBRecon."和"RelRecon."分别表示顺序桶重建和关系重建。圆形和三角形分别表示顶点和超边，灰色虚线槽表示填充槽。
+
+相互耦合的三个组件：（1）HIDT-O，负责将超图结构序列化为固定长度的令牌序列；（2）HIP，将序列中的语义与结构信息对齐至大语言模型的令牌空间；（3）超图即语言协议，通过由背景-细节-问题三部分构成的提示模板，将超图令牌与自然语言上下文共同输入冻结的大语言模型。在整个超图对齐微调过程中，仅更新HIP的参数。不引入任何任务特定头部，且骨干大语言模型保持冻结不变。
+
+\section*{3.2 超图原生序列化：HIDT-O}
+
+超图关联细节模板。为将高阶关联结构编译为定长序列，我们提出了超图关联细节模板（HIDT）。如图3所示，给定中心对象\(c\)，HIDT从顶点-超边关联二分视角构建固定形状的关联树，其中顶点层与超边层严格交替排列。值得注意的是，这种关联二分表示相对于顶点-超边关联结构是无损的，能够完整保留原始超图的结构信息[33]。
+
+具体而言，我们将中心对象 \(c\) 置于第0层作为根节点。当 \(c \in  \mathcal{V}\) 时，第一层从 \(c\) 的关联超边中采样固定数量的超边。第二层从第一层的每条超边中采样固定数量的成员顶点，并排除父顶点以避免立即回溯。第三层进一步从这些成员顶点采样新的关联超边，并排除父超边。后续层继续在顶点和超边之间交替扩展。当 \(c \in  \mathcal{E}\) 时，此过程与 \(c \in  \mathcal{V}\) 的情况对偶：我们首先采样超边的成员顶点，然后从这些成员顶点扩展到其他关联超边，依此类推。对于任何父节点，当可扩展对象的数量小于采样预算时，我们使用 [V-PAD] 填充顶点槽位，使用 [E-PAD] 填充超边槽位，以将相应槽位填充至固定大小。通过这种方式，每个超图被组织成一棵具有固定拓扑但内容依赖于采样的交替关联树。通过对该树进行层序遍历，我们得到细节序列：\({\Pi }_{\mathrm{{HIDT}}}\left( c\right)  = \left( {{u}_{1},\ldots ,{u}_{{L}_{D}}}\right)\)，其中每个位置对应一个确定的结构角色。由于一旦指定采样预算，模板拓扑在所有样本间共享，我们可以为模板预计算一组模板级拉普拉斯位置编码，使得相同的相对结构角色在不同样本间共享一致的位置语义。
+
+\begin{center}
+\includegraphics[max width=0.4\textwidth]{images/019eb6e5-4366-7e57-a3a7-f7fc12c7791f_3_899_1468_580_238_0.jpg}
+\end{center}
+\hspace*{3em} 
+
+图 3：HIDT 示意图。左侧部分展示了一个以查询为中心的局部超图上下文，右侧部分则展示了对应的固定形状 HIDT 关联树。其中，\(h\) 表示超边跳壳层，\(l\) 表示模板层。
+
+序感知结构概览后缀。为覆盖更广的高阶感受野，我们在HIDT后追加一个序感知结构概览后缀\({\Pi }_{\mathrm{O}}\left( c\right)\)，并将所得序列称为HIDT-O：\(\Pi \left( c\right)  = {\Pi }_{\mathrm{{HIDT}}}\left( c\right) \parallel{\Pi }_{\mathrm{O}}\left( c\right)\)。
+
+概览后缀不再直接枚举额外的具体成员，因为这样做会导致序列长度的组合爆炸。相反，它为当前中心对象提供了一种压缩摘要，刻画了不同跳距和不同超边度的超边如何围绕该中心分布。具体而言，从 \(c\) 出发，我们在关联二分图上执行受限的广度优先搜索（BFS），并收集严格位于第 \(h\) 超边层中的超边集合 \({S}_{h}\left( c\right)\)。这里，\(h\) 索引的是交替BFS遍历中的超边层，而非原始的二分边距离；中心对象被视为起始层，只有额外到达的超边才会在概览后缀中被汇总。随后，我们根据阶数桶对这些超边进行划分：
+
+\[
+{S}_{h,b}\left( c\right)  = \left\{  {e \in  {S}_{h}\left( c\right)  \mid  \beta \left( {r\left( e\right) }\right)  = b}\right\}  , \tag{2}
+\]
+
+其中 \(\beta \left( \cdot \right)\) 表示阶次桶映射函数。在语义构建方面，我们采用了一种无参数交替聚合方案。设顶点与超边的初始状态分别为 \({m}_{v}^{\left( 0\right) } = \psi \left( v\right)\) 和 \({m}_{e}^{\left( 0\right) } = \psi \left( e\right)\)，其中 \(\psi \left( \cdot \right)\) 表示顶点或超边的文本嵌入。随后，我们在关联二分图上执行如下交替传播，共进行 \(t = 1,\ldots ,H\) 步，其中 \(t\) 表示传播步数：
+
+\[
+{m}_{e}^{\left( t\right) } = \frac{1}{\left| e\right| }\mathop{\sum }\limits_{{v \in  e}}{m}_{v}^{\left( t - 1\right) },\;{m}_{v}^{\left( t\right) } = \frac{1}{\left| \Gamma \left( v\right) \right| }\mathop{\sum }\limits_{{e \in  \Gamma \left( v\right) }}\left( {{m}_{e}^{\left( t\right) } + {\mathbf{o}}_{\beta \left( {r\left( e\right) }\right) }}\right) , \tag{3}
+\]
+
+其中 \(\Gamma \left( v\right)  = \{ e \in  \mathcal{E} \mid  v \in  e\}\) 表示与顶点 \(v\) 关联的超边集合。此处，\({\mathbf{o}}_{\beta \left( {r\left( e\right) }\right) }\) 是一个分配给对应阶数桶的固定向量，用于在传播过程中显式保留每条超边所属超边度区间的信息。
+
+值得注意的是，对于每个概览槽(h, b)，其语义聚合深度与其结构跳数索引相关联。我们并非先传播至固定的最大深度，再对所有概览槽使用相同的最终表示，而是通过使用传播步骤\(t = h\)处的超边状态，在第\(h\)跳构建该槽：
+
+\[
+{\widehat{m}}_{h,b}\left( c\right)  = \operatorname{Mean}\left( \left\{  {{m}_{e}^{\left( h\right) } \mid  e \in  {S}_{h,b}\left( c\right) }\right\}  \right) . \tag{4}
+\]
+
+该设计使跳跃索引\(h\)在三个层面保持一致：由\({S}_{h,b}\left( c\right)\)概括的结构层、\({m}_{e}^{\left( h\right) }\)的语义聚合深度，以及概览令牌的位置编码。
+
+总体而言，HIDT 保留了超图的细粒度局部细节，而概览后缀则进一步补充了高阶结构分布以及跨不同跳距和阶数桶的跨跳上下文，且无需引入额外参数。
+
+超边标记封装。在HIDT-O中，对于所有参与采样的顶点或超边，我们使用现成的文本编码器（如Qwen嵌入模型和SBERT）对其文本信息进行编码。获得HIDT-O后，我们将每个标记\({u}_{i}\)表示为语义向量与结构向量的拼接。
+
+在语义方面，若\({u}_{i}\)为顶点令牌，我们使用其文本属性的嵌入。若\({u}_{i}\)为超边令牌，我们优先使用超边的文本嵌入，当没有显式超边文本时，则退而求其次使用其成员顶点表示的平均值。若\({u}_{i}\)为概览令牌，我们使用对应的概览向量\({\widehat{m}}_{h,b}\)。对于填充令牌，我们使用零向量。我们将此语义表示记为\({a}_{i}\)。在结构方面，我们为每个令牌显式维护一组结构描述符：\({s}_{i} = \left\lceil{{U}_{i}\parallel{\mathbf{t}}_{{\tau }_{i}}\parallel{\mathbf{h}}_{{\ell }_{i}}\parallel{\mathbf{o}}_{{b}_{i}}\parallel{\mathbf{d}}_{{\delta }_{i}}}\right\rceil\)，其中\({U}_{i}\)表示位置编码，\({\mathbf{t}}_{{\tau }_{i}}\)表示令牌类型编码，\({\mathbf{h}}_{{\ell }_{i}}\)表示深度编码，\({\mathbf{o}}_{{b}_{i}}\)表示超边度上的阶次桶编码，\({\mathbf{d}}_{{\delta }_{i}}\)表示顶点度桶编码。此处，\({\delta }_{i}\)表示第\(i\)个令牌的顶点度桶索引。对于结构描述符不适用的令牌类型，我们使用特殊的空桶。最终，输入至投影器的内容写作：\({g}_{i} = \left\lbrack{{a}_{i}\parallel{s}_{i}}\right\rbrack\)。通过这一过程，我们显式地将对高阶关系至关重要的结构信息提供给投影器，而非完全交由语言建模进行隐式恢复。
+
+\section*{3.3 超图关联投影器}
+
+语义-结构解耦。超图关联投影器（HIP）首先将语义向量与结构向量分别映射。给定第\(i\)个词元的语义向量\({a}_{i}\)和结构向量\({s}_{i}\)，它将语义侧压缩为语义核心：\({c}_{i} = {W}_{\text{ sem }} \cdot  \mathrm{{LN}}\left( {a}_{i}\right)\)，其中\(\mathrm{{LN}}\left( \cdot \right)\)表示层归一化。随后，结构侧通过角色条件化的结构主干映射到结构补丁空间：\({p}_{i} = {W}_{\text{ str }}^{{\rho }_{i}} \cdot  \operatorname{LN}\left( {s}_{i}\right)\)，其中\({\rho }_{i} \in  \{ \mathrm{V},\mathrm{E},\mathrm{O},\mathrm{P}\}\)分别表示顶点、超边、概览和填充这四种角色。两部分随后拼接并归一化，得到投影器的初始隐藏状态：\({h}_{i}^{\left( 0\right) } = \operatorname{LN}\left( {\left\lbrack{c}_{i}\right\rbrack   \mid{p}_{i}}\right)\)。此外，该步骤将原始文本嵌入维度与投影器的工作宽度解耦。\({h}_{i}^{\left( 0\right) }\)的维度通常远小于原始文本嵌入维度，从而避免投影器尺寸随文本编码器变化而线性增长。
+
+基于关联关系的顶点-超边双向消息传递。若投影器仅对每个标记进行独立的线性映射，则超图中的高阶结构仍未得到真正利用。因此，HIP在隐藏状态上引入了一个轻量级的超关联模块，显式地执行由HIP内部关联关系驱动的顶点-超边双向消息传递。
+
+设初始投影状态为 \({H}^{\left( 0\right) } = {\left\{  {h}_{i}^{\left( 0\right) }\right\}  }_{i = 1}^{{L}_{\mathcal{H}}}\) 。对于任意细节超边令牌 \(e\) ，令 \(M\left( e\right)\) 表示当前局部序列中与其对应的成员顶点令牌集合。对于任意细节顶点令牌 \(v\) ，令 \(N\left( v\right)\) 表示当前局部序列中与其关联的超边令牌集合。首先，在顶点 \(\rightarrow\) 超边方向上，每个超边令牌从其成员顶点令牌聚合消息。我们使用集合注意力来建模超边内部成员之间的重要性差异。对于任意超边令牌 \(e\) ，注意力权重定义为：
+
+\[
+{\alpha }_{e \leftarrow  v} = {\operatorname{softmax}}_{v \in  M\left( e\right) }\left( \frac{{\left( {W}_{q}{h}_{e}^{\left( 0\right) }\right) }^{\top }\left( {{W}_{k}{h}_{v}^{\left( 0\right) }}\right) }{\sqrt{{d}_{\text{ att }}}}\right) , \tag{5}
+\]
+
+其中 \({d}_{\text{ att }}\) 表示注意力维度。从顶点到超边的聚合消息通过以下方式获得：
+
+\[
+{m}_{e}^{V \rightarrow  E} = \mathop{\sum }\limits_{{v \in  M\left( e\right) }}{\alpha }_{e \leftarrow  v}{W}_{e \leftarrow  v}{h}_{v}^{\left( 0\right) }. \tag{6}
+\]
+
+然后，我们将该消息与当前超边状态融合，并更新超边表示：
+
+\[
+{\widetilde{h}}_{e} = \operatorname{LN}\left( {{h}_{e}^{\left( 0\right) } + {\phi }_{E}\left( \left\lbrack  {{h}_{e}^{\left( 0\right) }\parallel {m}_{e}^{V \rightarrow  E}}\right\rbrack  \right) }\right) . \tag{7}
+\]
+
+完成超边更新后，我们在超边\(\rightarrow\)顶点方向对称地进行反向聚合。对于任意顶点令牌\(v\)，其关联的超边集合为\(N\left( v\right)\)，对应的注意力权重为：
+
+\[
+{\alpha }_{v \leftarrow  e} = {\operatorname{softmax}}_{e \in  N\left( v\right) }\left( \frac{{\left( {W}_{q}{h}_{v}^{\left( 0\right) }\right) }^{\top }\left( {{W}_{k}{\widetilde{h}}_{e}}\right) }{\sqrt{{d}_{\text{ att }}}}\right) . \tag{8}
+\]
+
+来自超边到顶点的聚合消息可写为：
+
+\[
+{m}_{v}^{E \rightarrow  V} = \mathop{\sum }\limits_{{e \in  N\left( v\right) }}{\alpha }_{v \leftarrow  e}{W}_{v \leftarrow  e}{\widetilde{h}}_{e}, \tag{9}
+\]
+
+顶点表示进一步更新为：
+
+\[
+{h}_{v}^{\left( 1\right) } = \operatorname{LN}\left( {{h}_{v}^{\left( 0\right) } + {\phi }_{V}\left( \left\lbrack  {{h}_{v}^{\left( 0\right) }\parallel {m}_{v}^{E \rightarrow  V}}\right\rbrack  \right) }\right) . \tag{10}
+\]
+
+对于超边标记，经过该单一超关联模块后的最终状态可表示为 \({h}_{e}^{\left( 1\right) } = {\widetilde{h}}_{e}\) 。对于不参与关联更新的标记（如概览标记和填充标记），其状态直接传递为 \({h}_{i}^{\left( 1\right) } = {h}_{i}^{\left( 0\right) }\) 。在超关联模块之后，HIP 使用一个两层 MLP 将最终隐藏状态映射至基础大语言模型的词嵌入空间，从而获得完整的超图标记序列 \(T\left( c\right)  = {\left\{  {t}_{i}\right\}  }_{i = 1}^{{L}_{\mathcal{H}}}\) 。
+
+\section*{3.4 超图即语言协议与训练}
+
+通过HIDT-O和HIP，我们获得了结构感知的超图令牌序列\(T\left( c\right)  \in{\mathbb{R}}^{{L}_{\mathcal{H}} \times{d}_{\operatorname{llm}}}\)。在论文层面，“超图即语言”指让大语言模型直接处理超图的整体视角。本节中，我们定义“超图即语言协议”来指代其具体输入接口：\(T\left( c\right)\)与围绕其设计的自然语言提示共同注入大语言模型的输入序列，使大语言模型能在统一问答范式下完成下游预测。具体而言，对于每个样本，Hyper-Align统一构建如下三部分提示：
+
+\[
+\text{ Prompt } = \text{ Background }\parallel \text{ Details }\parallel \text{ Question. } \tag{11}
+\]
+
+背景部分提供了任务陈述和领域描述，并在任务陈述句中嵌入了特殊占位符<hypergraph>，当输入大语言模型时，该占位符会被替换为超图标记序列\(T\left( c\right)\)。细节部分是从同一HIDT-O结构确定性渲染的文本上下文，为超图标记提供辅助的自然语言补充。问题部分则指定了待预测对象、候选标签集以及输出格式要求。
+
+在超图对齐调优中，每个样本被转换为对话对，其中人类侧包含插入了超图标记的\(\mathcal{P}\left( c\right)\)，助手侧则包含目标答案文本。设所得输入为\(\mathcal{I}\left( c\right)\)，目标答案为\({y}_{1 : K}\)。Hyper-Align通过标准因果语言建模损失进行优化：\({\mathcal{L}}_{\text{ lm }} =  - \mathop{\sum }\limits_{{k = 1}}^{K}\log{p}_{\Theta ,\phi }\left( {{y}_{k} \mid{y}_{ < k},\mathcal{I}\left( c\right) }\right)\)，其中\(\Theta\)表示冻结的大语言模型参数，\(\phi\)表示可训练的超图指示提示参数。训练期间，提示标记和插入的超图标记区域被屏蔽监督，仅响应部分用于下一标记预测。因此，Hyper-Align执行仅投影器调优：大语言模型保持固定，而超图指示提示学习将超图结构与LLM标记空间对齐。
+
+除了主要的语言建模目标外，我们还在HIP表示上设计了两个轻量级的高阶一致性损失。第一个是阶桶重构损失\({\mathcal{L}}_{\text{ ord }}\)，它鼓励超边相关标记保留HIDT-O中编码的超边阶桶信息。第二个是局部关系重构损失\({\mathcal{L}}_{\text{ rel }}\)，它要求HIP能够区分标记对之间的基本结构关系，例如顶点-超边关联关系和同一超边内的共成员关系。这些辅助目标仅作用于HIP，并用于正则化超图对齐调优，详细公式见附录C。整体训练目标表示为：\(\mathcal{L} = {\mathcal{L}}_{\text{ lm }} + {\lambda }_{\text{ ord }}{\mathcal{L}}_{\text{ ord }} + {\lambda }_{\text{ rel }}{\mathcal{L}}_{\text{ rel }}\)。
+
+\section*{4 HyperAlign-Bench}
+
+为系统评估不同模型捕捉高阶关联结构的能力，我们构建了HyperAlign-Bench——首个面向超图-语言对齐的基准测试。与现有主要关注普通图的评估方法不同，HyperAlign-Bench直接将超图作为基础数据对象，保留了顶点-超边关联所表达的高阶关联语义。该基准还提供了统一的数据构建流程、任务协议和评估接口，以便对不同方法进行公平比较。
+
+HyperAlign-Bench 包含两个对偶任务：顶点分类与超边分类。前者以查询顶点为中心，要求模型基于高阶关联上下文预测其类别；后者以查询超边为中心，要求模型预测引发该超边的源对象的类别。在 HyperAlign-Bench 中，主数据集为 Arxiv-HG，该数据集基于 OGBN-Arxiv [34] 构建。我们将论文引用关系转化为共引超图：对每篇源论文，将其引用的论文集合视为一条超边。这种构造方式避免了将高阶共引关系扁平化为普通图边，从而得到一个包含 169,343 个顶点和 123,826 条超边的训练与域内评估数据集。除主数据集外，HyperAlign-Bench 还包含 4 个源自 HyperBERT [32] 的重组数据集，即 Cora-CC、PubMed、DBLP 和 IMDB，覆盖论文、作者关系和电影等不同领域。这些数据集用于评估模型将高阶关联结构建模迁移到未见领域的能力。总体而言，HyperAlign-Bench 为验证超图原生对齐能力与跨领域泛化性提供了实验基础。更多细节见附录 B。
+
+\section*{5 实验结果}
+
+\section*{5.1 实验设置}
+
+我们在 HyperAlign-Bench 上对 Hyper-Align 进行评估。训练过程中，我们在 Arxiv-HG 上联合优化两个任务：顶点分类（VC）和超边分类（HEC）。随后，我们在四个未见过的超图数据集 Cora-CC、PubMed、DBLP 和 IMDB 上评估同一检查点，且不进行任何额外微调，以检验其跨领域零样本泛化能力。默认情况下，Hyper-Align 使用 Qwen3-8B 作为基础大语言模型，而顶点和超边的语义特征由 Qwen3-Embedding-0.6B 预先编码。我们在 4 块 NVIDIA A100 GPU 上训练模型 2 个 epoch。全局有效批次大小为 64，学习率设为 \(2 \times{10}^{-3}\)，采用余弦调度，预热比例为 0.03。对于 HIDT-O，我们最多使用 160 个超图令牌，为每个中心顶点采样最多 8 条关联超边，并为每条超边采样最多 8 个成员顶点。概览后缀包含 8 个令牌，对应 2 跳和 4 个阶数桶。更多实现细节见附录 D.1。
+
+\section*{5.2 与其他方法的比较}
+
+表1：VC与HEC任务的域内性能。此处，“GOFA*”表示评估直接使用官方发布的权重进行。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Category & \(\mathbf{{Method}}\) & Venue & \multicolumn{2}{|c|}{\(\mathbf{{VC}}\left( \% \right)\)  \(\mathbf{{HEC}\left( \% \right) }\)} \\
+\cline{1-5}
+\multirow{4}{*}{HGNNs} & HGNN [20 & AAAI’19 & 69.5 & 69.4 \\
+\cline{2-5}
+ & HyperGCN [21] & NeurIPS’19 & 71.6 & 71.6 \\
+\cline{2-5}
+ & HAN 35 & WWW'19 & 65.3 & 66.5 \\
+\cline{2-5}
+ & AllSetTrans [22] & ICLR’22 & 68.9 & 70.0 \\
+\cline{1-5}
+PLM-based & HyperBERT [32] & EMNLP’24 & 59.1 & 58.5 \\
+\cline{1-5}
+\multirow{4}{*}{General LLMs} & Llama2-7B [36] & arXiv’23 & 9.7 & 8.1 \\
+\cline{2-5}
+ & Llama3-8B [37] & arXiv’24 & 54.5 & 56.0 \\
+\cline{2-5}
+ & Qwen3-8B [38] & arXiv’25 & 55.5 & 60.3 \\
+\cline{2-5}
+ & GPT-5-mini [39] & OpenAI’25 & 65.4 & 67.0 \\
+\cline{1-5}
+\multirow{8}{*}{Graph-LLMs} & GraphGPT [12] & SIGIR’24 & 69.3 & 69.7 \\
+\cline{2-5}
+ & LLaGA [13 & ICML’24 & 70.4 & 71.5 \\
+\cline{2-5}
+ & TEA-GLM [14] & NeurIPS’24 & 70.8 & 71.3 \\
+\cline{2-5}
+ & G.Prompter [40] & ICDE’25 & 60.1 & 68.6 \\
+\cline{2-5}
+ & PromptGFM [15] & arXiv’25 & 68.9 & 69.7 \\
+\cline{2-5}
+ & UniGraph [29] & SIGKDD’25 & 62.4 & 71.2 \\
+\cline{2-5}
+ & \({\mathrm{{GOFA}}}^{ * }\left\lbrack  {30}\right\rbrack\) & ICLR’25 & 51.1 & 53.1 \\
+\cline{2-5}
+ & GOFA [30] & ICLR’25 & 69.7 & 70.5 \\
+\cline{1-5}
+HG-LLMs & \multicolumn{2}{|c|}{Hyper-Align (Ours) -} & 76.9 & 78.2 \\
+\cline{1-5}
+\hline
+\end{tabular}
+}
+\end{center}
+
+领域内评估。表1报告了在Arxiv-HG上的领域内结果。Hyper-Align在VC和HEC两项任务上均取得了最佳性能，显著优于最强基线模型。在现有的超图专用方法中，HGNN通过直接建模超图结构取得了有竞争力的结果，但它们仍是针对特定任务设计的监督式编码器，既无法提供与语言对齐的接口，也不支持任何零样本能力。基于预训练语言模型（PLM）的HyperBERT表现明显较差，这表明仅将文本语义注入PLM不足以实现超图建模。通用大语言模型在使用更强的指令遵循模型时有所改进，但其性能仍然有限，因为纯文本提示无法忠实地表示原生顶点-超边关联结构。图大语言模型进一步受益于结构感知的适配，但它们从根本上构建于成对图表示之上，因此无法完全保留超边级别的分组语义。相比之下，我们的Hyper-Align是首个超图原生的大语言模型框架，能够直接将顶点-超边关联结构与LLM的令牌空间对齐。相较于所有HGNN、基于PLM的方法、通用LLM和图LLM的显著提升，既证明了原生超图-语言对齐的必要性，也验证了我们所提设计的有效性。
+
+表 2：在 Cora-CC、PubMed、DBLP 和 IMDB 数据集上的零样本性能。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\(\mathbf{{Method}}\)} & \multirow{2}{*}{Venue} & \multicolumn{2}{|c|}{Cora-CC (\%)} & \multicolumn{2}{|c|}{PubMed (\%)} & \multicolumn{2}{|c|}{DBLP (\%)} & \multicolumn{2}{|c|}{IMDB (\%)} & \multicolumn{2}{|c|}{Average (\%)} \\
+\cline{3-12}
+ &  & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & HEC \\
+\cline{1-12}
+GraphGPT [12] & SIGIR’24 & 60.3 & 62.3 & 71.2 & 72.8 & 50.0 & 59.8 & 30.3 & 29.6 & 53.0 & 56.1 \\
+\cline{1-12}
+LLaGA [13 & ICML’24 & 2.8 & 3.6 & 0.9 & 0.5 & 51.1 & 56.4 & 18.1 & 28.1 & 18.2 & 22.2 \\
+\cline{1-12}
+TEA-GLM [14] & NeurIPS’24 & 32.6 & 51.2 & 12.5 & 26.3 & 58.2 & 60.5 & 52.3 & 32.7 & 38.9 & 42.7 \\
+\cline{1-12}
+G.Prompter [40] & ICDE’25 & 32.8 & 37.6 & 58.0 & 60.4 & 61.1 & 60.3 & 52.3 & 41.3 & 51.1 & 49.9 \\
+\cline{1-12}
+PromptGFM [15] & arXiv’25 & 58.4 & 55.1 & 70.8 & 75.9 & 56.3 & 60.9 & 28.9 & 27.0 & 53.6 & 54.7 \\
+\cline{1-12}
+UniGraph [29] & SIGKDD’25 & 64.4 & 72.5 & 72.0 & 66.5 & 65.5 & 61.5 & 51.2 & 42.3 & 63.3 & 60.7 \\
+\cline{1-12}
+\({\mathrm{{GOFA}}}^{ * }{30}\) & ICLR’25 & 61.4 & 60.8 & 70.2 & 71.1 & 4.4 & 2.1 & 63.6 & 28.6 & 49.9 & 40.7 \\
+\cline{1-12}
+GOFA 30 & ICLR’25 & 59.3 & 60.8 & 69.9 & 71.3 & 3.1 & 2.1 & 54.0 & 42.4 & 46.6 & 44.2 \\
+\cline{1-12}
+Hyper-Align (Ours) & - & 74.8 & 75.7 & 77.5 & 77.6 & 67.2 & 64.6 & 74.5 & 44.9 & 73.5 & 65.7 \\
+\cline{1-12}
+\hline
+\end{tabular}
+}
+\end{center}
+
+跨域零样本评估。表2进一步报告了在四个未见数据集上的零样本结果。Hyper-Align在所有数据集的VC和HEC任务上均取得了最佳性能。尽管一些图-LLM在个别数据集上取得了具有竞争力的分数，但其性能在不同领域间波动显著。相比之下，Hyper-Align展现出更稳定的跨域泛化能力，表明Hyper-Align学习到的是更具迁移性的高阶关联建模对齐模式，而非仅拟合源数据集。
+
+\section*{5.3 消融实验}
+
+表 3：所提出组件的详细消融研究。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\(\mathbf{{Exp}.}\)} & \multicolumn{2}{|c|}{HIDT-O} & \multirow{2}{*}{HIP} & \multicolumn{2}{|c|}{Aux. Loss} & \multicolumn{2}{|c|}{Input Protocol} & \multicolumn{2}{|c|}{In-domain} & \multicolumn{2}{|c|}{Zero-shot Avg} \\
+\cline{2-3}
+\cline{5-12}
+ & HIDT & Overview &  & OBRecon. & RelRecon. & HGToken & Details & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & \(\mathbf{{HEC}}\) \\
+\cline{1-12}
+F0: Full Hyper-Align & ✓ & ✓ & ✓ & ✓ & ✓ & ✓ & ✓ & 76.9 & 78.2 & 73.5 & 65.7 \\
+\cline{1-12}
+S1: w/o HIDT detail & ✘ & ✓ & ✓ & ✓ & ✓ & ✓ & ✓ & 70.4 & 71.1 & 66.8 & 58.9 \\
+\cline{1-12}
+S2: w/o Overview & ✓ & ✘ & ✓ & ✓ & ✓ & ✓ & ✓ & 75.9 & 76.7 & 72.4 & 64.2 \\
+\cline{1-12}
+P1: MLP projector & ✓ & ✓ & ✘ & ✓ & ✓ & ✓ & ✓ & 74.3 & 75.0 & 70.9 & 62.1 \\
+\cline{1-12}
+L1: w/o OBRecon. & ✓ & ✓ & ✓ & ✘ & ✓ & ✓ & ✓ & 76.5 & 77.5 & 73.0 & 65.0 \\
+\cline{1-12}
+L2: w/o RelRecon. & ✓ & ✓ & ✓ & ✓ & ✘ & ✓ & ✓ & 76.4 & 77.6 & 72.9 & 65.1 \\
+\cline{1-12}
+L3: w/o Aux. losses & ✓ & ✓ & ✓ & ✘ & ✘ & ✓ & ✓ & 76.1 & 77.3 & 72.5 & 64.4 \\
+\cline{1-12}
+G1: Text-only prompt & - & - & - & - & 0 & ✘ & ✓ & 56.5 & 62.0 & 61.3 & 58.2 \\
+\cline{1-12}
+G2: HG token only & ✓ & ✓ & ✓ & ✓ & ✓ & ✓ & ✘ & 75.2 & 76.4 & 70.8 & 62.7 \\
+\cline{1-12}
+\hline
+\end{tabular}
+}
+\end{center}
+
+对提出组件的消融分析。表3展示了提出组件的详细消融研究。移除HIDT序列导致性能下降最为显著，这证实了细粒度的顶点-超边关联细节对于建模原生高阶关联至关重要。移除概述后缀同样导致域内评估和零样本评估的持续下降，表明概述标记在局部HIDT模板之外提供了互补的更广泛结构上下文。对于投影器，用普通MLP投影器替换HIP会严重损害性能，尤其在零样本迁移场景下，这表明独立标记投影不足以将超图结构与LLM空间对齐。辅助损失也带来了持续增益：移除任一辅助重建任务都会降低性能，而同时移除两者则导致更大幅度的下降，这表明两个辅助目标可作为保留顺序感知和关系感知结构信息的有效正则化器。我们还对超图即语言协议进行了消融分析。纯文本提示变体移除了<hypergraph>标记并仅依赖文本细节，其表现远逊于完整的Hyper-Align。相比之下，仅使用超图标记的变体仍具竞争力，但在零样本评估中仍不及完整协议。这些结果表明，超图标记承载了主要的结构信息，而文本细节则进一步促进了LLM对齐和跨领域泛化。
+
+基础LLM与嵌入模型的影响。表4评估了Hyper-Align在不同基础LLM和嵌入模型选择下的表现。该实验旨在检验Hyper-Align的优势是否仅源于使用了更强的近期LLM，还是源于所提出的超图原生架构本身。为此，我们纳入了Vicuna-7B [41]搭配SBERT [42]和SimTeG [43]嵌入的配置，这些配置遵循了先前图-LLM工作（如LLaGA [13]）中常用的设置；特别地，Vicuna-7B搭配SimTeG对应于LLaGA的默认设置。
+
+在这些受控设置下，Hyper-Align 依然取得了强劲的性能，并显著优于表1中报告的图-大语言模型基线方法，这表明其增益并非仅仅源于使用了更先进的大语言模型或嵌入模型。同时，在 Vicuna-7B 设置下，用 SimTeG 替换 SBERT 提升了结果，而基于 Qwen3 的配置  进一步增强了域内和零样本性能。这些结果表明，Hyper-Align 兼容不同的大语言模型和语义编码器，其主要优势来自超图原生对齐设计，而非依赖于特定的大语言模型或嵌入模型。
+
+表4：使用不同基础大语言模型与嵌入模型的性能表现。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Base LLM} & \multirow{2}{*}{\(\mathbf{{Emb}.{Model}}\)} & \multirow{2}{*}{\(\mathbf{{Emb}.{Dim}.}\)} & \multicolumn{2}{|c|}{In-domain} & \multicolumn{2}{|c|}{Zero-shot Avg} \\
+\cline{4-7}
+ &  &  & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & HEC \\
+\cline{1-7}
+Vicuna-7B & SBERT & 384 & 75.8 & 76.5 & 70.9 & 61.2 \\
+\cline{1-7}
+Vicuna-7B & SimTeG & 2432 & 76.0 & 77.1 & 72.0 & 61.9 \\
+\cline{1-7}
+Owen3-8B & Owen3-Emb-0.6B & 1024 & 76.9 & 78.2 & 73.5 & 65.7 \\
+\cline{1-7}
+Qwen3-8B & Qwen3-Emb-4B & 2560 & 77.2 & 78.8 & 74.2 & 66.5 \\
+\cline{1-7}
+\hline
+\end{tabular}
+}
+\end{center}
+
+单任务与联合训练。表5对比了单任务训练与联合训练的效果。两种训练方法在域内性能上大致相当，但联合训练在跨域零样本性能上具有显著优势。这些结果表明，同时优化以顶点为中心和以超边为中心的任务，能够促使HIP学习到超图与语言之间更通用的共享对齐方式，从而获得更强的泛化能力。
+
+表 5：单任务与联合训练对比。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Training} & \multicolumn{2}{|c|}{In-domain} & \multicolumn{2}{|c|}{Zero-shot Avg} \\
+\cline{2-5}
+ & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & HEC \\
+\cline{1-5}
+Single-task & 77.0 & 77.6 & 67.3 & 64.7 \\
+\cline{1-5}
+Joint & 76.9 & 78.2 & 73.5 & 65.7 \\
+\cline{1-5}
+\hline
+\end{tabular}
+}
+\end{center}
+
+超边度数的影响。我们按超边度数对Arxiv-HG HEC测试超边进行分层，并报告模型在每个度数区间的准确率。如图4所示，Hyper-Align在所有度数区间均持续取得最优性能，表明Hyper-Align在富含群体级关联的高阶场景中依然有效。值得注意的是，当超边度数为2时，Hyper-Align已优于基于图的基线方法。这一结果表明，我们的超图形式化方法能自然容纳成对关系，甚至能比标准图方法更有效地建模此类双向关联。我们进一步将Hyper-Align与内部成对变体Hyper-Align-clique进行比较。该变体将原生超边替换为团扩展的成对边，同时保持框架其余部分不变；此设置与本文中图-LLM的实验设置一致。当超边度数仅为2时，Hyper-Align与Hyper-Align-clique表现相似。然而，随着超边度数增加，Hyper-Align相较Hyper-Align-clique展现出明显优势。这一趋势表明，成对扩展虽能捕获部分关系信号，但会丢失超边固有的分组语义。因此，实验结果支持我们的主张：保留顶点-超边关联结构对于建模高阶关联至关重要。
+
+\begin{center}
+\includegraphics[max width=0.4\textwidth]{images/019eb6e5-4366-7e57-a3a7-f7fc12c7791f_8_955_1613_527_395_0.jpg}
+\end{center}
+\hspace*{3em} 
+
+图4：在Arxiv-HG上按超边度分层的HEC准确率。
+
+\section*{6 结论}
+
+本文提出“超图即语言”的视角，并设计了Hyper-Align——首个面向大语言模型的超图原生对齐框架。与依赖成对图表示的现有图-大语言模型不同，Hyper-Align通过“超图即语言”协议直接表示顶点-超边关联结构，利用HIDT-O编码细粒度高阶上下文，并通过HIP将超图令牌与大语言模型令牌空间对齐。为支持系统性评估，我们构建了HyperAlign-Bench，涵盖域内和零样本设定下的顶点级与超边级任务。大量实验表明，Hyper-Align显著优于当前HGNN、基于预训练语言模型的方法、通用大语言模型以及图-大语言模型。我们希望Hyper-Align能为构建能够理解并推理复杂高阶关联的语言对齐模型提供有益基础。
+
+\section*{参考文献}
+
+{[}1{]} Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al. Language models are few-shot learners. Adv. Neural Inform. Process. Syst., 33:1877-1901, 2020.
+
+{[}2{]} Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M Dai, and Quoc V Le. Finetuned language models are zero-shot learners. arXiv preprint arXiv:2109.01652, 2021.
+
+{[}3{]} Wayne Xin Zhao, Kun Zhou, Junyi Li, Tianyi Tang, Xiaolei Wang, Yupeng Hou, Yingqian Min, Be-ichen Zhang, Junjie Zhang, Zican Dong, et al. A survey of large language models. arXiv preprint arXiv:2303.18223, 1(2):1-124, 2023.
+
+{[}4{]} Muhammad Usman Hadi, Rizwan Qureshi, Abbas Shah, Muhammad Irfan, Anas Zafar, Muhammad Bilal Shaikh, Naveed Akhtar, Jia Wu, Seyedali Mirjalili, et al. A survey on large language models: Applications, challenges, limitations, and practical usage. Authorea Preprints, 2023.
+
+{[}5{]} Xubin Ren, Jiabin Tang, Dawei Yin, Nitesh Chawla, and Chao Huang. A survey of large language models for graphs. In \({ACM}\;{SIGKDD}\) , pages 6616-6626,2024.
+
+{[}6{]} Jeff Z Pan, Simon Razniewski, Jan-Christoph Kalo, Sneha Singhania, Jiaoyan Chen, Stefan Dietze, Hajira Jabeen, Janna Omeliyanenko, Wen Zhang, Matteo Lissandrini, et al. Large language models and knowledge graphs: Opportunities and challenges. arXiv preprint arXiv:2308.06374, 2023.
+
+{[}7{]} Yuhan Li, Zhixun Li, Peisong Wang, Jia Li, Xiangguo Sun, Hong Cheng, and Jeffrey Xu Yu. A survey of graph meets large language model: Progress and future directions. arXiv preprint arXiv:2311.12399, 2023.
+
+{[}8{]} Ruosong Ye, Caiqi Zhang, Runhui Wang, Shuyuan Xu, and Yongfeng Zhang. Language is all a graph needs. In Findings Assoc. Comput. Linguist., pages 1955-1973, 2024.
+
+{[}9{]} Ziwei Chai, Tianjie Zhang, Liang Wu, Kaiqiang Han, Xiaohai Hu, Xuanwen Huang, and Yang Yang. GraphLLM: Boosting graph reasoning ability of large language model. IEEE Trans. Big Data, 2025.
+
+{[}10{]} Qiaolong Cai, Zhaowei Wang, Shizhe Diao, James Kwok, and Yangqiu Song. CodeGraph: Enhancing graph reasoning of LLMs with code. arXiv preprint arXiv:2408.13863, 2024.
+
+{[}11{]} Xin Li, Weize Chen, Qizhi Chu, Haopeng Li, Zhaojun Sun, Ran Li, Chen Qian, Yiwei Wei, Zhiyuan Liu, Chuan Shi, et al. Can large language models analyze graphs like professionals? a benchmark, datasets and models. Adv. Neural Inform. Process. Syst., 37:141045-141070, 2024.
+
+{[}12{]} Jiabin Tang, Yuhao Yang, Wei Wei, Lei Shi, Lixin Su, Suqi Cheng, Dawei Yin, and Chao Huang. GraphGPT: Graph instruction tuning for large language models. In Proc. Int. ACM SIGIR Conf. Res. Dev. Inf. Retr., pages 491-500, 2024.
+
+{[}13{]} Runjin Chen, Tong Zhao, Ajay Jaiswal, Neil Shah, and Zhangyang Wang. LLaGA: Large language and graph assistant. In Proc. Int. Conf. Mach. Learn., pages 7809-7823, 2024.
+
+{[}14{]} Duo Wang, Yuan Zuo, Fengzhi Li, and Junjie Wu. Llms as zero-shot graph learners: Alignment of gnn representations with llm token embeddings. Advances in neural information processing systems, 37:5950-5973, 2024.
+
+{[}15{]} Xi Zhu, Haochen Xue, Ziwei Zhao, Wujiang Xu, Jingyuan Huang, Minghao Guo, Qifan Wang, Kaixiong Zhou, Imran Razzak, and Yongfeng Zhang. LLM as GNN: Graph vocabulary learning for text-attributed graph foundation models. arXiv preprint arXiv:2503.03313, 2025.
+
+{[}16{]} Claude Berge. Hypergraphs: combinatorics of finite sets, volume 45. Elsevier, 1984.
+
+{[}17{]} Dengyong Zhou, Jiayuan Huang, and Bernhard Schölkopf. Learning with hypergraphs: Clustering, classification, and embedding. Adv. Neural Inform. Process. Syst., 19, 2006.
+
+{[}18{]} Yue Gao, Shuyi Ji, Xiangmin Han, and Qionghai Dai. Hypergraph computation. Engineering, 2024.
+
+{[}19{]} Federico Battiston, Giulia Cencetti, Iacopo Iacopini, Vito Latora, Maxime Lucas, Alice Patania, Jean-Gabriel Young, and Giovanni Petri. Networks beyond pairwise interactions: Structure and dynamics. Physics Reports, 874:1-92, 2020.
+
+{[}20{]} Yifan Feng, Haoxuan You, Zizhao Zhang, Rongrong Ji, and Yue Gao. Hypergraph neural networks. In AAAI, pages 3558-3565, 2019.
+
+{[}21{]} Naganand Yadati, Madhav Nimishakavi, Prateek Yadav, Vikram Nitin, Anand Louis, and Partha Talukdar. HyperGCN: A new method for training graph convolutional networks on hypergraphs. Adv. Neural Inform. Process. Syst., 32, 2019.
+
+{[}22{]} Eli Chien, Chao Pan, Jianhao Peng, and Olgica Milenkovic. You are AllSet: A multiset function framework for hypergraph neural networks. In Int. Conf. Learn. Represent., 2022.
+
+{[}23{]} Yifan Feng, Jiashu Han, Shihui Ying, and Yue Gao. Hypergraph isomorphism computation. IEEE Trans. Pattern Anal. Mach. Intell., 46(5):3880-3896, 2024.
+
+{[}24{]} Zhixuan Chu, Yan Wang, Qing Cui, Longfei Li, Wenqing Chen, Zhan Qin, and Kui Ren. LLM-guided multi-view hypergraph learning for human-centric explainable recommendation. arXiv preprint arXiv:2401.08217, 2024.
+
+{[}25{]} Xu Guo, Tong Zhang, Yuanzhi Wang, Chenxu Wang, Fuyun Wang, Xudong Wang, Xiaoya Zhang, Xin Liu, and Zhen Cui. Multi-modal hypergraph enhanced llm learning for recommendation. arXiv preprint arXiv:2504.10541, 2025.
+
+{[}26{]} Yifan Feng, Hao Hu, Shihui Ying, Xingliang Hou, Shiquan Liu, Mingyuan Yang, Junchang Li, Shaoyi Du, Nanning Zheng, Han Hu, et al. Hyper-RAG: Combating llm hallucinations using hypergraph-driven retrieval-augmented generation. Nature Communications, 2026.
+
+{[}27{]} Bingqiao Gu, Jiale Zeng, Xingqin Qi, and Dong Li. Modeling hypergraph using large language models. arXiv preprint arXiv:2510.11728, 2025.
+
+{[}28{]} Yifan Feng, Chengwu Yang, Xingliang Hou, Shaoyi Du, Shihui Ying, Zongze Wu, and Yue Gao. Beyond graphs: Can large language models comprehend hypergraphs? In Int. Conf. Learn. Represent., pages 3445-3472, 2025.
+
+{[}29{]} Yufei He, Yuan Sui, Xiaoxin He, and Bryan Hooi. UniGraph: Learning a unified cross-domain foundation model for text-attributed graphs. In ACM SIGKDD, pages 448-459, 2025.
+
+{[}30{]} Lecheng Kong, Jiarui Feng, Hao Liu, Chengsong Huang, Jiaxin Huang, Yixin Chen, and Muhan Zhang. GOFA: A generative one-for-all model for joint graph language modeling. In Int. Conf. Learn. Represent., 2025.
+
+{[}31{]} R Zhang, Y Zou, and J Ma. Hyper-SAGNN: a self-attention based graph neural network for hypergraphs. In Int. Conf. Learn. Represent., 2020.
+
+{[}32{]} Adrián Bazaga, Pietro Liò, and Gos Micklem. HyperBERT: Mixing hypergraph-aware layers with language models for node classification on text-attributed hypergraphs. In Proc. Conf. Empirical Methods in Nat. Lang. Process., pages 9181-9193, 2024.
+
+{[}33{]} Qionghai Dai and Yue Gao. Mathematical foundations of hypergraph. In Hypergraph Computation, pages 19-40. Springer, 2023.
+
+{[}34{]} Weihua Hu, Matthias Fey, Marinka Zitnik, Yuxiao Dong, Hongyu Ren, Bowen Liu, Michele Catasta, and Jure Leskovec. Open graph benchmark: Datasets for machine learning on graphs. Adv. Neural Inform. Process. Syst., 33:22118-22133, 2020.
+
+{[}35{]} Xiao Wang, Houye Ji, Chuan Shi, Bai Wang, Yanfang Ye, Peng Cui, and Philip S Yu. Heterogeneous graph attention network. In Int. World Wide Web Conf., pages 2022-2032, 2019.
+
+{[}36{]} Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288, 2023.
+
+{[}37{]} Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Alex Vaughan, et al. The Llama 3 herd of models. arXiv preprint arXiv:2407.21783, 2024.
+
+{[}38{]} An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388, 2025.
+
+{[}39{]} OpenAI. GPT-5 mini. https://developers.openai.com/api/docs/models/gpt-5-mini 2025. Model: gpt-5-mini.
+
+{[}40{]} Rui Lv, Zaixi Zhang, Kai Zhang, Qi Liu, Weibo Gao, Jiawei Liu, Jiaxia Yan, Linan Yue, and Fangzhou Yao. GraphPrompter: Multi-stage adaptive prompt optimization for graph in-context learning. In Proc. IEEE Int. Conf. Data Eng., pages 3917-3930, 2025.
+
+{[}41{]} Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E. Gonzalez, Ion Stoica, and Eric P. Xing. Vicuna: An open-source chatbot impressing GPT-4 with 90\%* ChatGPT quality, March 2023.
+
+{[}42{]} Nils Reimers and Iryna Gurevych. Sentence-BERT: Sentence embeddings using siamese BERT-networks. In Proc. Conf. Empirical Methods in Nat. Lang. Process., pages 3982-3992, 2019.
+
+{[}43{]} Keyu Duan, Qian Liu, Tat-Seng Chua, Shuicheng Yan, Wei Tsang Ooi, Qizhe Xie, and Junxian He. SimTeG: A frustratingly simple approach improves textual graph learning. arXiv preprint arXiv:2308.02565, 2023.
+
+{[}44{]} Yanzhao Zhang, Mingxin Li, Dingkun Long, Xin Zhang, Huan Lin, Baosong Yang, Pengjun Xie, An Yang, Dayiheng Liu, Junyang Lin, et al. Qwen3 embedding: Advancing text embedding and reranking through foundation models. arXiv preprint arXiv:2506.05176, 2025.
+
+{[}45{]} Alessia Antelmi, Gennaro Cordasco, Mirko Polato, Vittorio Scarano, Carmine Spagnuolo, and Dingqi Yang. A survey on hypergraph representation learning. ACM Comp. Surv., 56(1):1-38, 2023.
+
+{[}46{]} Sunwoo Kim, Soo Yong Lee, Yue Gao, Alessia Antelmi, Mirko Polato, and Kijung Shin. A survey on hypergraph neural networks: An in-depth and step-by-step guide. In ACM SIGKDD, pages 6534-6544, 2024.
+
+{[}47{]} Yue Gao, Yifan Feng, Shiquan Liu, Xiangmin Han, Shaoyi Du, Zongze Wu, and Han Hu. Hypergraph foundation model. IEEE Trans. Pattern Anal. Mach. Intell., 48(4):4063-4080, 2026.
+
+{[}48{]} Fan Li, Xiaoyang Wang, Wenjie Zhang, Ying Zhang, and Xuemin Lin. DHG-Bench: A comprehensive benchmark for deep hypergraph learning. arXiv preprint arXiv:2508.12244, 2025.
+
+\section*{附录}
+
+Contents
+
+A Detailed Related Work 14
+
+A. 1 LLMs for Graph Structural Data 14
+
+A. 2 超图学习与超图-大语言模型的初步探索 15
+
+B Details of HyperAlign-Bench 16
+
+B. 1 数据集构建与统计 16
+
+B. 2 Task Splits 16
+
+B. 3 Degree Distributions 16
+
+C 高阶一致性辅助监督的细节 17
+
+D Experimental Setup Details 18
+
+D. 1 Implementation Details 18
+
+D.2 Baselines 18
+
+E Supplementary Experiments 19
+
+F 成对不可区分超图诊断 20
+
+G Discussion 23
+
+\section*{相关工作详述}
+
+\section*{A.1 面向图结构数据的大语言模型}
+
+现有关于如何使大语言模型（LLMs）理解并处理图结构数据的研究，可大致分为两种范式[5, 6, 7]。早期范式遵循“图即文本”（或“图即代码”）路线，其核心思想是将图结构重写为自然语言描述或代码风格的表示，然后通过指令微调或上下文学习，使LLMs在文本空间中执行图任务[8, 9, 10, 11]。InstructGLM直接以自然语言描述多尺度图结构，推动了生成式图学习的早期探索[8]。GraphLLM进一步指出，传统的图到文本（Graph2Text）过程本身可能成为瓶颈，并尝试通过端到端的结构建模来增强LLMs的图推理能力[9]。
+
+一个较新的主流范式是图到令牌（graph-to-token）路线 [12, 13, 14, 15, 29, 30]。这一方向的核心问题并非如何将图写成文本，而是如何将图结构转换为与LLM输入空间兼容的图令牌。GraphGPT通过图指令微调将图结构知识注入LLM [12]。LLaGA通过结构感知模板和轻量级投影器，将图中的节点序列映射到LLM的令牌空间 [13]。TEA-GLM强调图神经网络表示与LLM令牌嵌入之间的显式对齐，旨在提升跨数据集和跨任务的零样本泛化能力 [14]。PromptGFM进一步提出了一种基于语言的图词汇表，统一了图结构理解与推理 [15]。
+
+尽管上述图到令牌的路线已证明将结构与语言模型对齐是一个极具前景的技术方向，但其共同前提仍局限于普通图：所建模的基本结构单元是节点、二元边及其局部邻域。对于许多现实世界的关系数据而言，这一前提并不充分[16, 17, 18, 19]。共现、群体交互和多智能体事件等现象的语义核心在于一个整体性事实：一组对象由同一高阶关系共同关联。现有研究表明，将超图图化会扁平化超边内的群体级身份信息，因此不足以保留高阶关系的原生语义[22, 23]。因此，尽管现有的图-大语言模型方法为结构-语言对齐提供了重要基础，它们仍不足以直接应对超图场景中的高阶关联建模。
+
+\section*{A.2 超图学习与超图-大语言模型的初步探索}
+
+与普通图所建模的成对连接不同，超图中的超边可以同时连接任意数量的顶点，因此更适合捕捉现实世界数据中广泛存在的高阶关联[16, 17, 18, 19]。围绕这一结构特性，超图学习已成为研究关联关系的关键技术[20, 21, 45, 46]。早期工作如超图神经网络（HGNN）直接将超边作为消息传递的基本结构单元，开启了超图神经网络的研究[20]。随后，Hyper-SAGNN进一步利用自注意力机制处理可变大小的超边，并支持高阶关系预测[31]。AllSet从多重集函数的角度统一了超图神经网络，强调“超边是一个集合而非边的列表”这一核心归纳偏置[22]。
+
+近年来，研究者进一步开始探索高阶结构与文本语义的联合建模。HyperBERT 将超图感知层融入预训练语言模型，用于文本属性超图上的顶点分类 [32]。Hyper-FM 从基础模型的角度研究了超图神经网络的可扩展性 [47]。DHG-Bench 从基准评测的角度，系统比较了不同类别的超图神经网络方法在多个任务和数据集上的表现 [48]。尽管这些工作已开始研究文本属性超图的建模，但其核心方法仍然是 HGNN 编码器。在大多数情况下，文本属性仅通过 BERT 等文本编码器转换为可供 HGNN 处理的特征。
+
+与此同时，在过去两年中，也出现了一些将超图与大语言模型相结合的初步探索。LLM4Hypergraph构建了一个系统性的超图理解与推理基准，并设计了多种提示策略来分析大语言模型是否具备处理超图的能力[28]。除此之外，现有研究大多仍遵循特定场景下的整合方式。例如，LLMHG和HeLLM等方法主要面向推荐系统[24, 25]，Hyper-RAG聚焦于复杂关系知识上的检索增强[26]，而HyperLLM则旨在利用大语言模型从文本中提取高阶关联结构[27]。这些研究表明，超图确实能为大语言模型带来高阶结构上的优势。然而，它们的关注点主要集中在基准测试、提示设计或特定应用上，而非建立统一的超图-语言对齐框架。更重要的是，现有尝试大多遵循我们称之为“超图到语言”的范式，即先将超图结构转换为自然语言描述，再输入给大语言模型。尽管直观，但这一范式本质上容易导致结构信息丢失。自然语言提示的设计初衷是可读性而非精确的结构保持，因此往往会压缩、线性化或截断原始超图。结果，诸如原生顶点-超边关联、超边身份、整体群组成员关系以及阶次相关的结构线索等关键信息，可能在转换过程中被削弱或丢失。相比之下，我们所提出的“超图即语言”观点并非仅通过文本叙述来描述超图，而是直接将原生超图结构组织成可被大语言模型消费的结构化令牌。由于关联表示本身相对于原始顶点-超边关系是无损的，这一形式化为实现结构保持的超图-语言对齐提供了一条具有原则性的路径。
+
+现有超图学习方法主要研究如何在超图上实现更优的关联建模，而现有超图-大语言模型研究则主要探讨大语言模型能否理解超图，或如何在特定场景中将超图与大语言模型相结合。然而，这些研究尚未回答一个更为根本的问题：我们能否让大语言模型将超图直接理解为一种类语言的结构化输入，从而使其能够原生地建模高阶关联并统一处理各类超图任务？本文提出的Hyper-Align正是为了填补这一空白：我们首次尝试为大型语言模型构建一个超图原生的对齐框架。
+
+\section*{B HyperAlign-Bench 的详细信息}
+
+HyperAlign-Bench 旨在评估模型是否能够理解并泛化超图中固有的高阶关联。它包含五个正式的基准数据集：Arxiv-HG、Cora-CC、PubMed、DBLP 和 IMDB。每个数据集均支持顶点分类（VC）和超边分类（HEC），从而能够在顶点和超边两个层面进行统一评估。Arxiv-HG 被用作主要的域内训练和评估数据集，而其余四个数据集则用于零样本迁移评估。
+
+\section*{B.1 数据集构建与统计}
+
+表6总结了HyperAlign-Bench的基本统计信息。Arxiv-HG由OGBN-Arxiv构建为共引超图，其中每条超边在排除源对象后捕获高阶共引关系。它是HyperAlign-Bench中规模最大的数据集，包含超过\({169}\mathrm{\;K}\)个顶点、\({123}\mathrm{\;K}\)条超边和\({1.1}\mathrm{M}\)个顶点-超边关联。除Arxiv-HG外，HyperAlign-Bench还包含四个重新组织的零样本数据集，这些数据集源自HyperBERT [32]中使用的数据集，即Cora-CC、PubMed、DBLP和IMDB。这些数据集覆盖不同领域并展现出不同的结构特性，为评估跨领域高阶关联结构上的泛化能力提供了测试平台。
+
+表6：HyperAlign-Bench中五个正式数据集的统计信息。所有数据集均支持顶点分类（VC）和超边分类（HEC）。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\(\mathbf{{Dataset}}\) & Domain / Source & \(\mathbf{\# {Vertices}}\) & \(\mathbf{\# {Hyperedges}}\) & \#Incidences & \#Classes & Tasks \\
+\cline{1-7}
+Arxiv-HG & OGBN-Arxiv co-citation hypergraph & 169,343 & 123,826 & 1,116,231 & 40 & VC, HEC \\
+\cline{1-7}
+Cora-CC & Cora one-hop successor hypergraph & 2,341 & 2,219 & 8,162 & 7 & VC, HEC \\
+\cline{1-7}
+PubMed & PubMed one-hop successor hypergraph & 19,716 & 13,011 & 81,502 & 3 & VC, HEC \\
+\cline{1-7}
+DBLP & DBLP-A one-hop successor hypergraph & 2,591 & 2,463 & 4,199 & 6 & VC, HEC \\
+\cline{1-7}
+IMDB & IMDB one-hop successor hypergraph & 3,939 & 839 & 4,656 & 3 & VC, HEC \\
+\cline{1-7}
+\hline
+\end{tabular}
+}
+\end{center}
+
+\section*{B.2 任务划分}
+
+对于VC任务，预测目标为中心顶点；对于HEC任务，预测目标为中心超边。表7报告了这两项任务的训练集、验证集和测试集划分。在主实验中，Hyper-Align在Arxiv-HG的训练集上进行训练，并在其测试集上评估域内性能。对于Cora-CC、PubMed、DBLP和IMDB，我们直接使用其测试集进行零样本评估，不进行任何额外微调。其训练集和验证集保留以供完整性验证和未来扩展使用。
+
+\section*{B.3 度分布}
+
+我们进一步在图5中可视化了顶点度与超边度的互补累积分布函数（CCDF）。其中，顶点度表示一个顶点所关联的超边数量，而超边度则表示一条超边所包含的顶点数量。分布结果表明，HyperAlign-Bench涵盖了跨数据集多样化的高阶结构模式：Arxiv-HG规模最大，并呈现出长尾的顶点度分布，反映了引文衍生超图中高度偏斜的连接模式。PubMed和Cora-CC也包含非平凡的高阶结构，而DBLP则相对更为集中。IMDB包含的超边较少，但其超边度分布呈现显著的长尾特征，表明存在规模极大的超边。这些差异使得HyperAlign-Bench适用于评估模型是否能够在异构超图结构间泛化，而非过拟合于单一度分布模式。
+
+表 7：HyperAlign-Bench 中用于顶点分类（VC）和超边分类（HEC）的任务划分。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Dataset & Task & Train & Valid & Test \\
+\cline{1-5}
+\multirow{2}{*}{Arxiv-HG} & VC & 90,941 & 29,799 & 48,603 \\
+\cline{2-5}
+ & HEC & 56,651 & 23,851 & 43,324 \\
+\cline{1-5}
+\multirow{2}{*}{Cora-CC} & VC & 1,404 & 468 & 469 \\
+\cline{2-5}
+ & HEC & 1,327 & 451 & 441 \\
+\cline{1-5}
+\multirow{2}{*}{PubMed} & VC & 11,829 & 3,943 & 3,944 \\
+\cline{2-5}
+ & HEC & 7,839 & 2,578 & 2,594 \\
+\cline{1-5}
+\multirow{2}{*}{DBLP} & VC & 1,554 & 518 & 519 \\
+\cline{2-5}
+ & HEC & 1,485 & 489 & 489 \\
+\cline{1-5}
+\multirow{2}{*}{IMDB} & VC & 2,363 & 787 & 789 \\
+\cline{2-5}
+ & HEC & 480 & 163 & 196 \\
+\cline{1-5}
+\hline
+\end{tabular}
+}
+\end{center}
+
+\begin{center}
+\includegraphics[max width=0.9\textwidth]{images/019eb6e5-4366-7e57-a3a7-f7fc12c7791f_16_315_773_1166_482_0.jpg}
+\end{center}
+\hspace*{3em} 
+
+图 5：HyperAlign-Bench 中五个形式数据集上顶点度与超边度的互补累积分布函数（CCDF）。顶点度表示一个顶点所关联的超边数量，而超边度表示一条超边所包含的顶点数量。
+
+\section*{C 高阶一致性辅助监督的细节}
+
+除了主要的语言建模损失外，Hyper-Align还保留了两种仅作用于HIP表示的辅助监督信号。
+
+第一项是订单桶重建损失。对于具有真实超边身份的超边令牌或概览令牌，其隐藏状态需要恢复对应的订单桶：
+
+\[
+{\mathcal{L}}_{\text{ ord }} = \mathop{\sum }\limits_{i}\operatorname{CE}\left( {{g}_{\text{ ord }}\left( {h}_{i}^{\left( 1\right) }\right) ,\beta \left( {r}_{i}\right) }\right) . \tag{12}
+\]
+
+第二个是关系重构损失。我们从HIDT细节片段中采样一组token对\(\Omega  = \left( {i,j}\right)\)，并预测它们之间的局部结构关系：\({r}_{ij} \in\) \{无关，关联，共成员\}，其中“关联”表示一个顶点token和一个超边token在原始超图中具有真实的关联关系，“共成员”表示两个顶点token来自同一条被采样超边的成员分支。对应的损失为
+
+\[
+{\mathcal{L}}_{\text{ rel }} = \mathop{\sum }\limits_{{\left( {i,j}\right)  \in  \Omega }}\operatorname{CE}\left( {{g}_{\text{ rel }}\left( \left\lbrack  {{h}_{i}^{\left( 1\right) }\parallel {h}_{j}^{\left( 1\right) }}\right\rbrack  \right) ,{r}_{ij}}\right) . \tag{13}
+\]
+
+因此，整体训练目标可表示为
+
+\[
+\mathcal{L} = {\mathcal{L}}_{\mathrm{{lm}}} + {\lambda }_{\text{ ord }}{\mathcal{L}}_{\text{ ord }} + {\lambda }_{\text{ rel }}{\mathcal{L}}_{\text{ rel }}. \tag{14}
+\]
+
+{D 实验设置细节}
+
+\section*{D.1 实现细节}
+
+我们在 HyperAlign-Bench 上对 Hyper-Align 进行了系统性评估。训练过程中，我们在 Arxiv-HG 上联合优化两项任务：顶点分类与超边分类。两项任务共享相同的标签空间，即来自 OGBN-Arxiv 的 40 个计算机科学类别。除域内评估外，我们进一步在四个未见过的超图数据集（Cora-CC、PubMed、DBLP 和 IMDB）上进行零样本评估，以检验模型跨域泛化高阶关系建模的能力。所有零样本结果均使用在 Arxiv-HG 上训练的同一检查点获得，未进行任何额外微调。
+
+默认情况下，Hyper-Align 采用 Qwen3-8B 作为冻结的主干语言模型。顶点和超边的文本语义特征由 Qwen3-Embedding-0.6B 预先编码。训练在 4 块 NVIDIA A100 GPU 上进行，使用 DeepSpeed ZeRO-2、bf16 精度和梯度检查点。模型训练 2 个 epoch，每 GPU 批次大小为 8，梯度累积步数为 2，全局有效批次大小为 64。学习率设为 \(2 \times{10}^{-3}\)，采用余弦调度，预热比率为 0.03，最大序列长度为 4096。训练期间，每块 GPU 约占用 \({31}\mathrm{{GB}}\) 内存，训练耗时约 14 小时。
+
+超图输入采用HIDT-O模板构建。我们最多保留160个超图令牌。对于每个中心对象，我们采样最多8条关联超边，每条超边最多采样8个成员顶点。概览后缀使用2跳和4个阶次桶，生成8个概览令牌。在投影器中，语义核心维度设为384，结构侧车维度设为64。推理阶段采用确定性解码，最大生成长度为32。
+
+\section*{D.2 基线方法}
+
+我们将Hyper-Align与四类基线方法进行比较：超图神经网络（HGNNs）、基于预训练语言模型（PLM）的方法、通用大语言模型（LLMs）以及图-大语言模型（Graph-LLMs）。这些类别涵盖了与我们的设定相关的主要建模范式。HGNNs提供特定于任务的超图编码器，直接对原生超图结构进行建模。基于PLM的方法检验预训练语言表示能否有效融入超图建模。通用LLMs评估强指令遵循模型能否仅通过自然语言描述以零样本方式解决该任务。Graph-LLMs测试为普通图开发的图-语言对齐方法在经过图适配后能否迁移到超图数据。对于每种基线方法，我们均遵循其官方实现，并采用原论文报告的超参数设置，以确保公平比较。
+
+HGNNs。对于HGNN基线方法，我们考虑HGNN 、HyperGCN 、HAN 和AllSet-Trans 。这些方法均为直接作用于超图结构的有监督超图编码器，因此可作为特定任务下强有力的非LLM基线。为确保语义输入空间的一致性，我们为所有HGNN使用由Qwen3-Embedding-0.6B 编码的相同文本特征。每个顶点特征通过拼接对应原始对象的标题与摘要，并对所得文本进行编码获得。由于这些HGNN方法不支持直接输入超边特征，其超边特征通过超图消息传递层内的特征聚合生成。我们在HyperAlign-Bench对应的VC和HEC划分上训练并评估每个HGNN。
+
+基于预训练语言模型的方法。对于基于预训练语言模型的基线，我们采用HyperBERT 。与纯文本方法不同，HyperBERT将预训练语言表示与超图感知的结构建模相结合，因此可作为融合语言语义与超图学习的代表性基线。为使比较聚焦于建模框架而非原始语义输入，我们采用与上述相同的文本特征构建方式，并在相同基准协议下遵循官方实现。
+
+通用大语言模型。对于通用大语言模型基线，我们纳入了 Llama2-7B 、Llama3-8B 、Qwen3-8B  和 GPT-5-mini 。这些模型不直接接受结构化图特征作为输入，因此我们仅在零样本设定下使用任务提示和纯文本描述对其进行评估。该对比旨在检验强大的通用大语言模型能否在缺乏显式结构对齐的情况下，从自然语言上下文中恢复超图语义。
+
+图-LLM。对于图-LLM基线，我们考虑GraphGPT 、LLaGA 、TEA-GLM 、GraphPrompter 、PromptGFM 、UniGraph 和GOFA 。这些方法最初是为文本属性普通图设计的，因此无法直接处理HyperAlign-Bench中原生的顶点-超边关联结构。为使其适用，我们将每个超图任务转换为最接近的兼容普通图任务，同时保持原始标签和训练/验证/测试划分不变。
+
+对于VC，我们采用团展开方法。原始超图的顶点保留为图的节点，每个超边被替换为其所关联的所有顶点之间的成对边。因此，转换后图中的一条边表示两个顶点至少共同出现在一个超边中。对于HEC，预测目标是超边。因此，我们首先构建对偶超图，其中每个原始超边变为一个对偶顶点，每个原始顶点诱导出一个对偶超边，该超边连接所有包含该顶点的原始超边。然后，我们对此对偶超图应用相同的团展开方法。等价地，在生成的普通图中，每个节点对应一个原始超边，如果对应的原始超边共享至少一个原始顶点，则两个节点相连。
+
+经过上述适配过程后，生成的文本属性图将按照各图-大语言模型（graph-LLM）的官方训练与推理设置输入其中。该协议旨在评估：为成对图开发的图-语言对齐方法，在经历标准图适配后，能否迁移至超图任务。
+
+\section*{E 补充实验}
+
+表 8：设置不同训练轮次的模型性能。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Epoch} & \multicolumn{2}{|c|}{In-domain} & \multicolumn{2}{|c|}{Zero-shot Avg} \\
+\cline{2-5}
+ & \(\mathbf{{VC}}\) & HEC & \(\mathbf{{VC}}\) & \(\mathbf{{HEC}}\) \\
+\cline{1-5}
+1 & 76.6 & 78.0 & 68.3 & 61.6 \\
+\cline{1-5}
+2 & 76.9 & 78.2 & 73.5 & 65.7 \\
+\cline{1-5}
+3 & 77.0 & 78.4 & 63.1 & 58.8 \\
+\cline{1-5}
+\hline
+\end{tabular}
+}
+\end{center}
+
+训练轮次的影响。表8研究了训练轮次的影响。将训练长度从一个轮次增加到两个轮次，能显著提升零样本迁移效果，这表明充分的投影器调优对于将高阶结构与冻结的大语言模型对齐是必要的。第三个轮次仅在域内带来微弱提升，却明显损害了零样本性能。这提示过度调优可能会过拟合源Arxiv-HG分布，并削弱跨领域泛化能力。因此，我们采用两个训练轮次作为默认设置。
+
+对超边度数效应的扩展分析。我们进一步从Arxiv-HG上的两个互补结构视角分析Hyper-Align。图6(a)按超边度数对HEC测试超边进行分层，而图6(b)按顶点所关联超边的平均度数对VC测试顶点进行分层。前者提供了一个以超边为中心的视角，衡量当目标超边本身包含不同数量的顶点时模型的表现。后者提供了一个以顶点为中心的对偶视角，衡量当被查询顶点被不同平均度数的超边包围时顶点分类的变化。这两个视角共同刻画了模型能否从日益丰富的高阶关联中获益。
+
+从超边中心视角来看，Hyper-Align在所有度数范围内均持续取得最佳性能。当超边度数较小时，特别是在度数为2的情况下，Hyper-Align已优于基于图的基线方法，这表明我们的超图建模方式天然兼容成对关系，并能有效建模此类双向关联。随着超边度数的增加，Hyper-Align相较于Hyper-Align-clique的优势愈发明显。这说明团扩展虽能捕获部分关系信号，但无法完整保留超边固有的分组语义。
+
+\begin{center}
+\includegraphics[max width=0.9\textwidth]{images/019eb6e5-4366-7e57-a3a7-f7fc12c7791f_19_306_210_1180_506_0.jpg}
+\end{center}
+\hspace*{3em} 
+
+图6：Arxiv-HG上的双重结构分层分析。左图：不同超边度范围下的HEC性能。右图：不同查询顶点所关联超边的平均度范围下的VC性能。
+
+从以顶点为中心的视角来看，也出现了一致的趋势。当一个顶点主要连接到低度超边时，局部结构更接近普通的成对或低阶环境，此时Hyper-Align已经保持竞争力。随着关联超边的平均度数增加，Hyper-Align保持了最强的性能，并显示出相对于基于团变体的更大优势。这表明原生超图建模的优势不仅限于对超边本身的分类；当周围上下文包含更丰富的群体级关联时，它还能改善对顶点的理解。
+
+总体而言，两项分层分析得出了相同的结论：Hyper-Align 在低阶和高阶场景下均有效，且随着局部高阶连接性变得更加丰富，其优势愈发显著。这些结果进一步支持了我们的主张，即保留顶点-超边关联结构对于建模高阶关联至关重要，而将超图简化为成对图会从超边中心和顶点中心两个视角丢失重要的结构语义。
+
+\section*{F 成对不可区分超图诊断}
+
+为进一步检验Hyper-Align是否保留了超图固有的高阶关联，我们构建了一个受控诊断任务，称为“成对不可区分超图诊断”。该实验并非旨在替代真实数据集上的下游评估，而是为了分离出一种基本的结构能力：当两个超图在团展开后诱导出完全相同的成对图时，模型是否仍能根据其原始超边分组对它们加以区分？
+
+该诊断直接源于普通图与超图之间的核心区别。在普通图中，基本结构单元是成对边。然而在超图中，语义焦点不仅在于两个顶点是否相连，更在于一组顶点是否通过同一条超边整体关联。因此，团扩展可能保留成对邻接关系，却破坏了超边固有的分组语义。以下诊断明确检验Hyper-Align能否利用团扩展下丢失的此类分组信息。
+
+构造。我们首先构造一对超图，它们在团扩展后诱导出相同的成对图，但具有不同的原生超边分组。设顶点集为
+
+\[
+V = \{ 1,2,3,4,5,6\} \text{ . } \tag{15}
+\]
+
+We define two hypergraphs:
+
+\[
+{\mathcal{H}}_{A} = \{ \{ 1,2,3\} ,\{ 1,4,5\} ,\{ 2,4,6\} ,\{ 3,5,6\} \} , \tag{16}
+\]
+
+and
+
+\[
+{\mathcal{H}}_{B} = \{ \{ 1,2,4\} ,\{ 1,3,5\} ,\{ 2,3,6\} ,\{ 4,5,6\} \} . \tag{17}
+\]
+
+这两个超图具有相同的基本统计特征：均包含6个顶点和4条超边，所有超边的度均为3，且每个顶点的度均为2。更重要的是，在对每条超边进行团扩展后，这两个超图会诱导出完全相同的成对图，且具有相同的成对边重数。最终得到的成对边集为
+
+\[
+{E}_{\text{ clique }} = \{ \left( {1,2}\right) ,\left( {1,3}\right) ,\left( {1,4}\right) ,\left( {1,5}\right) ,\left( {2,3}\right) ,\left( {2,4}\right) ,\left( {2,6}\right) \text{ , } \tag{18}
+\]
+
+\[
+\left( {3,5}\right) ,\left( {3,6}\right) ,\left( {4,5}\right) ,\left( {4,6}\right) ,\left( {5,6}\right) \} \text{ . }
+\]
+
+因此，任何仅依赖团扩展成对图的方法，都无法仅凭成对邻接关系区分\({\mathcal{H}}_{A}\)与\({\mathcal{H}}_{B}\)。
+
+然而，这两个超图具有不同的原生超边分组方式。例如，\(\{ 1,2,3\}\) 是 \({\mathcal{H}}_{A}\) 中的真实超边，但它并非 \({\mathcal{H}}_{B}\) 中的超边。在 \({\mathcal{H}}_{B}\) 中，经过团扩展后，三个成对关系 (1,2)、(1,3) 和 (2,3) 均存在，但这三个顶点并未由同一条超边共同连接。因此，该构造直接检验了模型能否区分“三个成对关系存在”与“三个顶点共同属于一条超边”这两种情况。
+
+任务定义。基于上述匹配的超图对，我们定义了一个名为“同超边隶属关系”的二分类任务。给定一个以顶点为中心的超图、一个中心顶点 \(c\) 以及两个候选顶点 \(u,v\) ，要求模型预测这三个顶点是否共同属于同一条超边：
+
+\[
+y\left( {\mathcal{H},c,u,v}\right)  = \mathbf{1}\left\lbrack  {\exists e \in  E,\{ c,u,v\}  \subseteq  e}\right\rbrack  . \tag{19}
+\]
+
+如果存在这样的超边，则答案为“是”，否则为“否”。
+
+对于每个查询三元组，我们从\({\mathcal{H}}_{A}\)和\({\mathcal{H}}_{B}\)中生成一对匹配样本。由于这两个超图具有相同的团展开成对图，仅基于成对关系的方法会为这两个样本接收到无法区分的结构输入。然而，由于它们固有的超边分组不同，两个样本的真实标签是相反的。例如，对于查询(1,2,3)，在\({\mathcal{H}}_{A}\)中标签为Yes，因为\(\{ 1,2,3\}\)是一条超边；但在\({\mathcal{H}}_{B}\)中标签为No，因为这三个顶点在团展开后仅成对连接，并不共同属于同一条超边。
+
+输入格式。为避免通过文本超边列表直接暴露答案，本诊断中不提供自然语言的“详情”部分。对于每个样本，我们使用HIDT构建以查询为中心的超图上下文，并通过HIP将其映射为软超图令牌。这些超图令牌被插入到提示中的<hypergraph>占位符内：
+
+给定一个以顶点为中心的超图：<hypergraph>，其中超边表示顶点之间固有的高阶群组成员关系。超图标记指示一个中心顶点和两个候选顶点；不提供文本形式的超边列表。
+
+问题：中心顶点与两个候选顶点是否共同出现在同一条超边中？直接回答“是”或“否”。
+
+在此设定下，模型无法读取超边的文本列表，而必须依赖插入的超图令牌。我们采用HIDT而非完整的HIDT-O序列，是因为该诊断任务聚焦于局部同超边成员关系，这类关系应能通过HIDT中细粒度的关联细节直接捕获。
+
+数据集变体。我们构建了两个数据集变体。Clean D20在核心构造的基础上添加了20个干扰顶点和20个干扰超边。每个匹配对中的两个样本均添加相同的干扰项，因此团扩展后的成对等价性得以保留。我们过滤掉任何包含完整查询三元组\(\{ c,u,v\}\)的干扰超边，以确保金标不变。Clean D20包含5000个训练样本和1000个测试样本，对应2500个训练匹配对和500个测试匹配对。该版本主要用作数据构建与评估流程的纯净性检验。
+
+对抗性 D50 通过添加 50 个干扰顶点、50 条随机干扰超边以及 18 条与查询相关的诱饵超边，进一步提升了难度。对于查询 (c, u, v)，生成器会添加诸如 \(\left( {c,u,x}\right) ,\left( {c,v,y}\right)\) 和 (u, v, z) 的诱饵超边，其中 \(x,y,z\) 为干扰顶点。这些诱饵超边增强了被查询顶点之间的成对证据，同时明确避免包含完整查询三元组 \(\{ c,u,v\}\) 的任何超边。因此，负样本仍可能包含 \(\left( {c,u}\right) ,\left( {c,v}\right)\) 和 (u, v) 的强成对证据，迫使模型区分成对连通性与原生联合成员关系。对抗性 D50 同样包含 5000 个训练样本和 1000 个测试样本。
+
+团扩展基线及泄漏控制。为显式评估仅成对关系的设定，我们构建了一个团扩展基线。对于原始超图中的每条超边，我们将其替换为其成员顶点之间的所有成对边。若同一对顶点在多个超边中共同出现，我们保留相应的成对边多重性。完成此转换后，所有度数大于二的原始超边均被移除，仅保留团扩展后的成对图。
+
+对于每一对匹配样本，我们验证两个转换后的样本在团扩展后具有完全相同的成对边多重集。因此，该基线方法能够获取成对邻接关系和成对边多重性，但无法获取原始的超边分组信息。我们还采用了若干防泄漏措施：随机排列核心顶点ID、使用不含标签信号的中性顶点文本、从提示中排除文本形式的超边列表、过滤包含完整查询三元组的干扰超边，以及按规范配对签名划分训练/测试数据，以避免跨划分出现同构重复。
+
+指标。我们在匹配样本对上报告三项指标。假设共有\(N\)个匹配对，其中第\(i\)对中的两个样本记为\(\left( {{s}_{i}^{A},{s}_{i}^{B}}\right)\)，且具有相反的标签\({y}_{i}^{A} \neq{y}_{i}^{B}\)。令\({\widehat{y}}_{i}^{A}\)和\({\widehat{y}}_{i}^{B}\)为解析后的预测结果。无效输出将被视为错误，且不计入翻转。
+
+样本准确率（Sample Acc.）是指所有单个样本上的标准准确率：
+
+\[
+\text{ Sample Acc. } = \frac{1}{2N}\mathop{\sum }\limits_{{i = 1}}^{N}\left( {\mathbf{1}\left\lbrack  {{\widehat{y}}_{i}^{A} = {y}_{i}^{A}}\right\rbrack   + \mathbf{1}\left\lbrack  {{\widehat{y}}_{i}^{B} = {y}_{i}^{B}}\right\rbrack  }\right) \text{ . } \tag{20}
+\]
+
+配对准确率（Pair Acc.）是一种更严格的配对级别准确率，它要求匹配对中的两个样本均被正确预测：
+
+\[
+\text{ Pair Acc. } = \frac{1}{N}\mathop{\sum }\limits_{{i = 1}}^{N}\mathbf{1}\left\lbrack  {{\widehat{y}}_{i}^{A} = {y}_{i}^{A} \land  {\widehat{y}}_{i}^{B} = {y}_{i}^{B}}\right\rbrack  \text{ . } \tag{21}
+\]
+
+翻转率衡量模型是否对匹配对中的两个样本给出相反的有效预测：
+
+\[
+\text{ Flip Rate } = \frac{1}{N}\mathop{\sum }\limits_{{i = 1}}^{N}\mathbf{1}\left\lbrack  {{\widehat{y}}_{i}^{A},{\widehat{y}}_{i}^{B} \in  \{ \text{ Yes, No }\}  \land  {\widehat{y}}_{i}^{A} \neq  {\widehat{y}}_{i}^{B}}\right\rbrack  \text{ . } \tag{22}
+\]
+
+由于每个匹配对中的金标准标签是相反的，配对准确率意味着正确的翻转，而翻转率仅衡量模型能否区分配对的两面。因此，模型只有在给出配对间不同预测时才可能获得高翻转率，但高配对准确率进一步要求这种区分的指向是正确的。
+
+对于任何仅使用成对信息的确定性方法，经过团扩展后，匹配对中的两个样本将变得不可区分，而它们的真实标签却相反。此类方法必须为每对中的两个样本生成相同的预测，因此其性能上限为
+
+\[
+\text{ Sample Acc. } = {50.00}\% ,\;\text{ Pair Acc. } = {0.00}\% ,\;\text{ Flip Rate } = {0.00}\% \text{ . } \tag{23}
+\]
+
+表9：成对不可区分的高阶诊断。每组匹配对在团扩展后产生相同的成对图，但具有不同的原生超边分组。任务要求判断中心顶点与两个候选顶点是否共同出现在同一超边中。
+
+\begin{center}
+\adjustbox{max width=\textwidth}{
+\begin{tabular}{|c|c|c|c|}
+\hline
+\(\mathbf{{Method}}\) & Sample Acc. & Pair Acc. & Flip Rate \\
+\cline{1-4}
+Pairwise-only deterministic bound & 50.00 & 0.00 & 0.00 \\
+\cline{1-4}
+Clique expansion baseline & 50.00 & 0.00 & 0.00 \\
+\cline{1-4}
+Hyper-Align, Clean D20 & 100.00 & 100.00 & 100.00 \\
+\cline{1-4}
+Hyper-Align, Adv-D50 & 84.80 & 70.40 & 71.20 \\
+\cline{1-4}
+\hline
+\end{tabular}
+}
+\end{center}
+
+结果。表9报告了诊断结果。仅成对确定性界限表示仅依赖团扩展成对图的确定性方法的理论极限。团扩展基线是对应的显式实现。
+
+如表所示，团展开基线严格匹配仅成对边界，达到\({50.00}\%\)样本准确率、\({0.00}\%\)成对准确率以及0.00\%翻转率。这证实了一旦移除原始超边分组而仅保留团展开的成对图，模型便无法区分每个匹配对中的两个样本。
+
+相比之下，Hyper-Align 在 Clean D20 设定下所有指标均达到 100.00\%，验证了构建与评估流程的正确性。在更具挑战性的 Adversarial D50 设定下，Hyper-Align 仍取得 84.80\% 的样本准确率、70.40\% 的配对准确率以及 71.20\% 的翻转率。这些结果表明，Hyper-Align 能够对两个在团扩展下完全相同但原生超边分组不同的超图做出不同预测。因此，该预测无法仅用成对邻接关系来解释。
+
+该诊断分离了成对邻接与原生超边分组之间的差异。由于每个匹配对中的两个样本在团展开后会产生相同的成对图，因此任何仅基于成对的表示都无法可靠地区分它们。团展开基线的失败从经验上证实了这一局限性。
+
+与此同时，Hyper-Align在未接收文本超边列表的情况下，显著超越了仅基于成对关系的性能上限。这表明HIDT式超图标记化保留了哪些顶点共同属于同一超边的信息，而非简单地将超图扁平化为普通图标记。因此，这项受控诊断实验为我们的核心主张提供了补充证据——即保留顶点-超边关联结构对于建模高阶关联至关重要。该诊断结果应与HyperAlign-Bench主实验结果及超边度分层分析共同解读：主实验评估下游性能，而本诊断实验则分离出团扩展无法表达的结构性能力。
+
+\section*{G 讨论}
+
+“超图即语言”的核心思想是将超图视为一种类似语言的结构化输入，其固有的顶点-超边关联关系能够与大语言模型对齐。Hyper-Align通过HIDT-O、HIP以及“超图即语言”协议来实例化这一视角。该框架将围绕查询的高阶上下文编译为连续的超图令牌，在保留群组级关联语义的同时，使生成的结构化表示能够直接被冻结的大语言模型所使用。这一设计融合了超图学习的结构化归纳偏置与大语言模型的语义理解和指令遵循能力，并在统一的问答界面下支持顶点级和超边级任务。
+
+本研究聚焦于文本属性超图及分类式评估，涵盖常见的引用、共现与合作场景，但并未穷尽所有可能的超图推理任务。未来工作可将“超图即语言”框架拓展至更广泛的应用场景，如超边检索、超图问答以及高阶结构的生成式推理。此外，Hyper-Align为每个查询中心化上下文采用固定令牌预算，而HIDT-O通过融合局部关联细节与概览级摘要来缓解这一限制；对于规模极大或密度极高的超图，自适应采样或动态令牌分配可能带来进一步增益。这些方向与本文提出的超图原生对齐原则相互独立，可进一步提升Hyper-Align的可扩展性与通用性。
+\end{document}

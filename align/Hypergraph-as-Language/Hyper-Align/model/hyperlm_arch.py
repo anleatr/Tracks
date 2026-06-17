@@ -83,8 +83,8 @@ class HyperLMMetaModel:
         self.config.htp_num_layers = getattr(model_args, 'htp_num_layers', 1)
 
 
-        self.mm_projector = build_graph_projector(self.config)
-        if hasattr(self.mm_projector, "set_consistency_weights"):
+        self.mm_projector = build_graph_projector(self.config) # 关联投影器HIP
+        if hasattr(self.mm_projector, "set_consistency_weights"): # 辅助loss
             self.mm_projector.set_consistency_weights(self.config.lambda_ord, self.config.lambda_rel)
 
         if pretrain_mm_mlp_adapter is not None:
